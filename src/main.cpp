@@ -1,6 +1,9 @@
 #include <iostream>
 #include <string>
 
+#include "board/board.h"
+#include "human/human_player.h"
+
 /*
  * main.cpp
  *
@@ -40,12 +43,26 @@ char selectPlayerForSide(const std::string& sideName) {
 void selectPlayersAndStart() {
 	char white = selectPlayerForSide("White");
 	char black = selectPlayerForSide("Black");
-	//TODO: start game
+	if(white == 'p' || black == 'p') { //both human controlled
+		game<human_player_console, human_player_console> gameController;
+		gameController.beginGame();
+	} //TODO other options
+}
+
+/*
+ * Can test all kind of functions here.
+ */
+void test() {
+	std::cout << 32 << ": " << tchess::createSquareName(32) << std::endl; //a4
+	std::cout << 33 << ": " << tchess::createSquareName(33) << std::endl; //b4
+	std::cout << 63 << ": " << tchess::createSquareName(63) << std::endl;; //h1
+	std::cout << 7 << ": " << tchess::createSquareName(7) << std::endl;; //h8
 }
 
 }
 
 int main() {
+	tchess::test();
 	std::cout << "TChess program" << std::endl;
 	std::cout << "Currently only console mode is supported!" << std::endl;
 	tchess::selectPlayersAndStart();

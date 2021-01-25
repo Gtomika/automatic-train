@@ -1,5 +1,8 @@
+#include <vector>
+
 #include "move.h"
 #include "board.h"
+#include "game.h"
 
 /*
  * move.cpp
@@ -10,47 +13,223 @@
  *      Author: Gáspár Tamás
  */
 
-inline bool tchess::move::isCapture() const {
-	//need to check the second bit
-	return flags[1];
-}
+namespace tchess
+{
+	//Move code for a "non-special" move that results in no capture.
+	extern const unsigned int quietMove = 0;
 
-inline bool tchess::move::isPromotion() const {
-	//need to check first bit
-	return flags[0];
-}
+	//Move code for double pawn pushes.
+	extern const unsigned int doublePawnPush = 1;
 
-inline bool tchess::move::isDoublePawnPush() const {
-	//not capture, promotion and only second special bit is on
-	return !flags[0] && !flags[1] && !flags[2] && flags[3];
-}
+	//Move code for kingside castle.
+	extern const unsigned int kingsideCastle = 2;
 
-inline bool tchess::move::isKingsideCastle() const {
-	//not capture, promotion and only the first special bit is true
-	return !flags[0] && !flags[1] && flags[2] && !flags[3];
-}
+	//Move code for queenside castle.
+	extern const unsigned int queensideCastle = 3;
 
-inline bool tchess::move::isQueensideCastle() const {
-	//not capture, promotion and both special bits are true
-	return !flags[0] && !flags[1] && flags[2] && flags[3];
-}
+	//Move code for captures.
+	extern const unsigned int capture = 4;
 
-inline bool tchess::move::isEnPassant() const {
-	//is a capture but not a promotion and only second special bit is true
-	return !flags[0] && flags[1] && !flags[2] && flags[3];
-}
+	//Move code for en-passant captures.
+	extern const unsigned int enPassantCapture = 5;
 
-unsigned int tchess::move::promotedTo() const {
-	//assumes this a promotion, so only checking special bits
-	int s1 = flags[2], s2 = flags[3];
-	if(s1==1 && s2==1) return tchess::queen;
-	if(s1==1 && s2==0) return tchess::rook;
-	if(s1==0 && s2==1) return tchess::bishop;
-	return tchess::knight;
-}
+	//Move code for a pawn push that results in a knight promotion.
+	extern const unsigned int knightPromotion = 8;
 
-std::string tchess::move::to_string() const {
-	std::string moveString;
+	//Move code for a pawn push that results in a bishop promotion.
+	extern const unsigned int bishopPromotion = 9;
 
-	return moveString;
+	//Move code for a pawn push that results in a rook promotion.
+	extern const unsigned int rookPromotion = 10;
+
+	//Move code for a pawn push that results in a queen promotion.
+	extern const unsigned int queenPromotion = 11;
+
+	//Move code for a pawn push that captures and results in a knight promotion.
+	extern const unsigned int knightPromotionCap = 12;
+
+	//Move code for a pawn push that captures and results in a bishop promotion.
+	extern const unsigned int bishopPromotionCap = 13;
+
+	//Move code for a pawn push that captures and results in a rook promotion.
+	extern const unsigned int rookPromotionCap = 14;
+
+	//Move code for a pawn push that captures and results in a queen promotion.
+	extern const unsigned int queenPromotionCap = 15;
+
+	inline bool move::isCapture() const {
+		//need to check the second bit
+		return flags[1];
+	}
+
+	inline bool move::isPromotion() const {
+		//need to check first bit
+		return flags[0];
+	}
+
+	inline bool move::isDoublePawnPush() const {
+		//not capture, promotion and only second special bit is on
+		return !flags[0] && !flags[1] && !flags[2] && flags[3];
+	}
+
+	inline bool move::isKingsideCastle() const {
+		//not capture, promotion and only the first special bit is true
+		return !flags[0] && !flags[1] && flags[2] && !flags[3];
+	}
+
+	inline bool move::isQueensideCastle() const {
+		//not capture, promotion and both special bits are true
+		return !flags[0] && !flags[1] && flags[2] && flags[3];
+	}
+
+	inline bool move::isEnPassant() const {
+		//is a capture but not a promotion and only second special bit is true
+		return !flags[0] && flags[1] && !flags[2] && flags[3];
+	}
+
+	unsigned int move::promotedTo() const {
+		//assumes this a promotion, so only checking special bits
+		int s1 = flags[2], s2 = flags[3];
+		if(s1==1 && s2==1) return tchess::queen;
+		if(s1==1 && s2==0) return tchess::rook;
+		if(s1==0 && s2==1) return tchess::bishop;
+		return tchess::knight;
+	}
+
+	std::string move::to_string() const {
+		if(isKingsideCastle()) { //special moves
+			return "o-o";
+		} else if(isQueensideCastle()) {
+			return "o-o-o";
+		}
+		std::string moveString;
+
+		moveString += createSquareName(fromSquare);
+
+		if(isCapture()) { //write x if capture
+			moveString += " x ";
+		}
+
+		moveString += createSquareName(toSquare);
+
+		if(isPromotion()) { //write what it was promoted to if it was promotion
+			moveString += " = ";
+			int pieceCode = promotedTo();
+			if(pieceCode == 2) { //knight
+				moveString += "N";
+			} else if(pieceCode == 3) { //bishop
+				moveString += "B";
+			} else if(pieceCode == 4) { //rook
+				moveString += "R";
+			} else if(pieceCode == 6) { //queen
+				moveString += "Q";
+			}
+		}
+
+		if(isEnPassant()) { //indicate en passant
+			moveString += " (en passant)";
+		}
+
+		return moveString;
+	}
+
+	//From stackoverflow, splits string by delimiters
+	size_t split(const std::string &txt, std::vector<std::string> &strs, char ch)
+	{
+	    size_t pos = txt.find( ch );
+	    size_t initialPos = 0;
+	    strs.clear();
+
+	    // Decompose statement
+	    while( pos != std::string::npos ) {
+	        strs.push_back( txt.substr( initialPos, pos - initialPos ) );
+	        initialPos = pos + 1;
+
+	        pos = txt.find( ch, initialPos );
+	    }
+
+	    // Add the last one
+	    strs.push_back( txt.substr( initialPos, std::min( pos, txt.size() ) - initialPos + 1 ) );
+
+	    return strs.size();
+	}
+
+	move_parse_exception::move_parse_exception(char const* const message) throw()
+			: std::runtime_error(message) {}
+
+	char const * move_parse_exception::what() const throw() {
+		return exception::what();
+	}
+
+	//Helper method that detects if the move is a promotion (assumes pawn move, correct square names)
+	bool checkForPromotion(const std::string& fromSquareName, const std::string& toSquareName, unsigned int side) {
+		if(side == white) {
+			//white promoted if the move is from the 7. rank to the 8. rank
+			return fromSquareName[1] == 7 && toSquareName[1] == 8;
+		} else { //black
+			//black promoted if the move is from the 2. rank to the 1. rank
+			return fromSquareName[1] == 2 && toSquareName[1] == 1;
+		}
+	}
+
+	static move move::parse_move(const std::string& moveString, unsigned int side) {
+		int fromSquare, toSquare;
+		if(moveString == "o-o") {
+			//get kingside castle squares for KING, depending on side
+			fromSquare = side == white ? 60 : 12 ;
+			toSquare = side == white ? 62 : 14 ;
+			return move(fromSquare, toSquare, kingsideCastle);
+		} else if(moveString == "o-o-o") {
+			//get queenside castle squares for KING, depending on side
+			fromSquare = side == white ? 60 : 12 ;
+			toSquare = side == white ? 58 : 10 ;
+			return move(fromSquare, toSquare, queensideCastle);
+		}
+		//move is not castle, so there must be piece code, departure and destination squares specified
+		std::vector<std::string> splitMove;
+		int splitSize = split(moveString, splitMove, ' '); //will fill the vector
+		if(splitSize < 3) {
+			throw move_parse_exception("Not enough move arguments!");
+		}
+		//the first token is the moved piece code
+		std::string p = splitMove[0];
+		if(p!="K" && p!="Q" && p!="P" && p!="R" && p!="N" && p!="B") {
+			throw move_parse_exception("Unrecognized piece code!");
+		}
+		//the second + third argument should be the departure/destination squares
+		try {
+			fromSquare = createSquareNumber(splitMove[1]);
+			toSquare = createSquareNumber(splitMove[2]);
+			//if the move is a promotion
+			if(p=="P" && checkForPromotion(splitMove[1], splitMove[2], side)) {
+				//must have a promotion piece code as well in this case
+				if(splitSize < 4) {
+					throw move_parse_exception("This move appears to be a promotion, but no promotion piece code was found!");
+				}
+				std::string pProm = splitMove[3];
+				unsigned int promMoveType;
+				if(pProm == "Q") {
+					promMoveType = queenPromotion;
+				} else if(pProm == "R") {
+					promMoveType = rookPromotion;
+				} else if(pProm == "N") {
+					promMoveType = knightPromotion;
+				} else if(pProm == "B") {
+					promMoveType = bishopPromotion;
+				} else {
+					throw move_parse_exception("Unrecognized promotion piece code!");
+				}
+				//move is a promotion, with a valid promotion piece code
+				return move(fromSquare, toSquare, promMoveType);
+			} else { //this move does not appear to be a promotion
+				/*
+				 * This move may be a capture or some other non promotion/non castle type,
+				 * but we have no way of knowing that here, so just using quiet move type.
+				 */
+				return move(fromSquare, toSquare, quietMove);
+			}
+		} catch (std::runtime_error& e) { //failed to parse square names
+			throw move_parse_exception("Unrecognized square name/names!");
+		}
+	}
 }
