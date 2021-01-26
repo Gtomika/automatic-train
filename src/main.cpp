@@ -43,7 +43,7 @@ char selectPlayerForSide(const std::string& sideName) {
 void selectPlayersAndStart() {
 	char white = selectPlayerForSide("White");
 	char black = selectPlayerForSide("Black");
-	if(white == 'p' || black == 'p') { //both human controlled
+	if(white == 'p' && black == 'p') { //both human controlled
 		game<human_player_console, human_player_console> gameController;
 		gameController.beginGame();
 	} //TODO other options

@@ -121,6 +121,79 @@ namespace tchess
 		std::memcpy(squares, tchess::def_squares, sizeof(squares));
 	}
 
+	inline int chessboard::operator [](unsigned int i) {
+		return squares[i];
+	}
+
+	//move generation implementation
+
+	void move_generator::generatePseudoLegalPawnMoves(unsigned int side, unsigned int square, std::list<move>& moves) const {
+		if(side == white) { //pawn moves for white
+
+		} else { //pawn moves for black
+
+		}
+	}
+
+	//Credits to chessprogramming.org for this useful code
+	void move_generator::generatePseudoLegalNonPawnMoves(unsigned int side, unsigned int square, std::list<move>& moves) const {
+		/*
+		 * Depending on the side, this may be negative, but now we wonly care about
+		 * the type of the piece.
+		 */
+		const int piece = board[square] < 0 ? -1*board[square] : board[square];
+		for(int i=0; i<offsetAmount[piece]; ++i) { //check all the directions (offsets) this piece can move to
+			for (int n = square;;) {
+				n = mailbox[mailbox64[n] + offsets[piece][i]]; //number of the next square in this direction
+			    if (n == -1) break; //square is off the board
+			    if (board[n] != 0) { //there is a piece on this square
+			    	if ( (side==white && board[n] < 0) || (side == black && board[n] > 0) ) { //this piece is an enemy piece
+			    		moves.push_back(move(square, n, capture));
+			        }
+			        break; //after capture, or if it was a friendly piece we can not move any more in this direction
+			    }
+			    //there was no piece here, can make a quiet move in this direction
+			    moves.push_back(move(square, n, quietMove));
+			    if (!canSlide[piece]) break; //for non-sliding pieces, we must stop after 1 move in a direction
+			}
+		}
+	}
+
+	void move_generator::generatePseudoLegalNormalMoves(unsigned int side, std::list<move>& moves) const {
+		if(side == white) { //generate moves for white
+			for(unsigned int square = 0; square < 64; ++square) { //check all squares
+				int piece = board[square];
+				if(piece > 0 && piece < 7) { //found a white piece
+					if(piece == pawn) { //look for white pawn moves
+						generatePseudoLegalPawnMoves(side, square, moves); //find all moves for this white pawn
+					} else { //look for white's non pawn moves
+						generatePseudoLegalNonPawnMoves(side, square, moves); //find all moves for this white piece
+					}
+				}
+			}
+		} else { //generate moves for black
+			for(unsigned int square = 0; square < 64; ++square) { //check all squares
+				int piece = board[square];
+				if(piece < 0) { //found a black piece
+					if(piece == pawn) { //look for black pawn moves
+						generatePseudoLegalPawnMoves(side, square, moves); //find all moves for black pawn
+					} else { //look for black's non pawn moves
+						generatePseudoLegalNonPawnMoves(side, square, moves); //find all moves for this black piece
+					}
+				}
+			}
+		}
+	}
+
+	void move_generator::generatePseudoLegalCastleMoves(unsigned int side, std::list<move>&) const {
+
+	}
+
+	void move_generator::generatePseudoLegalMoves(unsigned int side, std::list<move>& moves) const {
+		moves.clear(); //empty list
+		generatePseudoLegalNormalMoves(side, moves); //add normal moves
+		generatePseudoLegalCastleMoves(side, moves); //add castling moves
+	}
 }
 
 

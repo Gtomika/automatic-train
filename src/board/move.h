@@ -143,6 +143,8 @@ namespace tchess
 		 */
 		static move parse_move(const std::string& moveString, unsigned int side);
 	};
+
+	class
 }
 
 #endif /* SRC_BOARD_MOVE_H_ */

@@ -1,4 +1,8 @@
 #include <string>
+#include <list>
+
+#include "move.h"
+#include "game.h"
 
 /*
  * board.h
@@ -108,6 +112,63 @@ namespace tchess
 	public:
 		//Creates a chessboard as it is at the start of the game.
 		chessboard();
+
+		inline int operator[](unsigned int);
+	};
+
+
+	/*
+	 * This class creates moves from a chessboard and the side to move.
+	 */
+	class move_generator {
+
+		/*
+		 * Stores the current chessboard.
+		 */
+		const chessboard& board;
+
+		/**
+		 * Additional information about the game, that is needed to
+		 * generate moves.
+		 */
+		const game_information& gameInfo;
+
+	public:
+
+		move_generator(const chessboard& b, const game_information& gi) : board(b), gameInfo(gi) {}
+
+		/*
+		 * Generates the pseudo legal moves for a chessboard and the side to move. The list
+		 * received as parameter will be cleared before, then filled with the moves. This method first
+		 * generates moves using one piece, then castling moves.
+		 *
+		 * Pseudo legal moves are where it isn't checked if they leave their king in check.
+		 */
+		void generatePseudoLegalMoves(unsigned int side, std::list<move>&) const;
+
+	private:
+
+		/*
+		 * This method will generate all pseudo legal moves for 1 pawn, on the given square.
+		 * It is checked by the called of this method that there is a pawn on this square.
+		 */
+		void generatePseudoLegalPawnMoves(unsigned int side, unsigned int square, std::list<move>&) const;
+
+		/**
+		 * Generates all pseudo legal moves for a non pawn piece. IT is checked by the called of
+		 * this method that there is a non pawn piece on this square
+		 */
+		void generatePseudoLegalNonPawnMoves(unsigned int side, unsigned int square, std::list<move>&) const;
+
+		/**
+		 * Generates all pawn moves, including en passant captures and promotions.
+		 */
+		void generatePseudoLegalNormalMoves(unsigned int side, std::list<move>&) const;
+
+		/**
+		 * Generates kingside and queenside castling moves.
+		 */
+		void generatePseudoLegalCastleMoves(unsigned int side, std::list<move>&) const;
 	};
 
 	/*

@@ -10,10 +10,10 @@
 namespace tchess
 {
 	//Identifier for the white player.
-	extern const unsigned int white = 1;
+	extern const unsigned int white = 0;
 
 	//Identifier for the black player.
-	extern const unsigned int black = -1;
+	extern const unsigned int black = 1;
 
 	//Constant that indicated no en passant capture is possible.
 	extern const int noEnPassant = - 10;
