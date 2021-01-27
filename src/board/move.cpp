@@ -1,8 +1,10 @@
 #include <vector>
 
+#include <boost/tokenizer.hpp>
+
 #include "move.h"
 #include "board.h"
-#include "game.h"
+#include "../game/game.h"
 
 /*
  * move.cpp
@@ -90,10 +92,10 @@ namespace tchess
 	unsigned int move::promotedTo() const {
 		//assumes this a promotion, so only checking special bits
 		int s1 = flags[2], s2 = flags[3];
-		if(s1==1 && s2==1) return tchess::queen;
-		if(s1==1 && s2==0) return tchess::rook;
-		if(s1==0 && s2==1) return tchess::bishop;
-		return tchess::knight;
+		if(s1==1 && s2==1) return queen;
+		if(s1==1 && s2==0) return rook;
+		if(s1==0 && s2==1) return bishop;
+		return knight;
 	}
 
 	std::string move::to_string() const {
@@ -133,32 +135,8 @@ namespace tchess
 		return moveString;
 	}
 
-	//From stackoverflow, splits string by delimiters
-	size_t split(const std::string &txt, std::vector<std::string> &strs, char ch)
-	{
-	    size_t pos = txt.find( ch );
-	    size_t initialPos = 0;
-	    strs.clear();
-
-	    // Decompose statement
-	    while( pos != std::string::npos ) {
-	        strs.push_back( txt.substr( initialPos, pos - initialPos ) );
-	        initialPos = pos + 1;
-
-	        pos = txt.find( ch, initialPos );
-	    }
-
-	    // Add the last one
-	    strs.push_back( txt.substr( initialPos, std::min( pos, txt.size() ) - initialPos + 1 ) );
-
-	    return strs.size();
-	}
-
-	move_parse_exception::move_parse_exception(char const* const message) throw()
-			: std::runtime_error(message) {}
-
 	char const * move_parse_exception::what() const throw() {
-		return exception::what();
+		return message.c_str();
 	}
 
 	//Helper method that detects if the move is a promotion (assumes pawn move, correct square names)
@@ -172,22 +150,26 @@ namespace tchess
 		}
 	}
 
-	static move move::parse_move(const std::string& moveString, unsigned int side) {
+	move parse_move(const std::string& moveString, unsigned int side) {
 		int fromSquare, toSquare;
 		if(moveString == "o-o") {
 			//get kingside castle squares for KING, depending on side
-			fromSquare = side == white ? 60 : 12 ;
-			toSquare = side == white ? 62 : 14 ;
+			fromSquare = side == white ? 60 : 4 ;
+			toSquare = side == white ? 62 : 6 ;
 			return move(fromSquare, toSquare, kingsideCastle);
 		} else if(moveString == "o-o-o") {
 			//get queenside castle squares for KING, depending on side
-			fromSquare = side == white ? 60 : 12 ;
-			toSquare = side == white ? 58 : 10 ;
+			fromSquare = side == white ? 60 : 4 ;
+			toSquare = side == white ? 58 : 2 ;
 			return move(fromSquare, toSquare, queensideCastle);
 		}
 		//move is not castle, so there must be piece code, departure and destination squares specified
 		std::vector<std::string> splitMove;
-		int splitSize = split(moveString, splitMove, ' '); //will fill the vector
+		boost::tokenizer<> tok(moveString);
+		for(boost::tokenizer<>::iterator it=tok.begin(); it != tok.end(); ++it) {
+			splitMove.push_back(*it);
+		}
+		int splitSize = splitMove.size();
 		if(splitSize < 3) {
 			throw move_parse_exception("Not enough move arguments!");
 		}

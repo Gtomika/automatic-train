@@ -1,9 +1,3 @@
-#include <iostream>
-#include <string>
-
-#include "move.h"
-#include "game.h";
-
 /*
  * human_player.h
  *
@@ -16,6 +10,12 @@
 
 #ifndef SRC_HUMAN_HUMAN_PLAYER_H_
 #define SRC_HUMAN_HUMAN_PLAYER_H_
+
+#include <iostream>
+#include <string>
+
+#include "board/move.h"
+#include "game/game.h"
 
 namespace tchess
 {
@@ -32,18 +32,37 @@ namespace tchess
 		//Side of the player.
 		unsigned int side;
 
-		//Reference to the game object. Needed to call it
-		template<typename WhitePlayer, typename BlackPlayer>
-		game<WhitePlayer,BlackPlayer>& gameObject;
-
 	public:
-		template<typename WhitePlayer, typename BlackPlayer>
-		human_player_console(unsigned int side, game<WhitePlayer,BlackPlayer>& gameObj) : side(side), gameObject(gameObj) {}
+		human_player_console(unsigned int side) : side(side) {}
+
+		human_player_console(const human_player_console& other) : side(other.side) {}
 
 		/*
-		 * Will prompt the user on the console to enter a move.
+		 * Will prompt the user on the console to enter a move. The resulting move has to
+		 * be sent to the controller object.
 		 */
-		void makeMove() const;
+		template<typename WhitePlayer, typename BlackPlayer>
+		void makeMove(game<WhitePlayer, BlackPlayer>& controller) const {
+			bool moveParsed = false;
+			while(!moveParsed) { //if use types help or something unparsable this will be printed again
+				std::cout << "--------------------------------" << std::endl;
+				std::cout << "Enter your move, or type 'help'!" << std::endl;
+				std::string input;
+				std::getline(std::cin, input);
+
+				if(input == "help") { //sked for help
+					std::cout << helpMessage;
+				} else { //try to parse a move
+					try {
+						move m = parse_move(input, side);
+						moveParsed = true;
+						controller.submitMove(m); //send move back to game controller
+					} catch(move_parse_exception& exc) {
+						std::cout << "Could not parse this move: " << exc.what() << std::endl;
+					}
+				}
+			}
+		}
 
 		/**
 		 * Return a string describing this player as human controlled (includes played side).

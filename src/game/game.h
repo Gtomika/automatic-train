@@ -1,6 +1,3 @@
-#include "board.h"
-#include "move.h"
-
 /*
  * game.h
  *
@@ -13,6 +10,11 @@
 #ifndef SRC_GAME_GAME_H_
 #define SRC_GAME_GAME_H_
 
+#include <iostream>
+
+#include "board/board.h"
+#include "board/move.h"
+
 namespace tchess
 {
 	//Identifier for the white player.
@@ -23,6 +25,47 @@ namespace tchess
 
 	//Constant that indicated no en passant capture is possible.
 	extern const int noEnPassant;
+
+	/*
+	 * The chessboard class which stores the current board, and allows for making and
+	 * unmaking moves. This class won't check for the validity of the moves, instead it assumes the
+	 * moves received are at least pseudo legal.
+	 */
+	class chessboard {
+
+		//Squares of the board
+		int squares[64];
+
+	public:
+		//Creates a chessboard as it is at the start of the game.
+		chessboard();
+
+		/*
+		 * This operator is used to access the squares of the board.
+		 */
+		inline int operator[](unsigned int i) const {
+			return squares[i];
+		}
+
+		/*
+		 * Modifies the chessboard according to the given move. Returns the code of the
+		 * captured piece (or 'empty' if there was no capture). This return value can later
+		 * be used by the 'unmakeMove' method to restore the board's previous state.
+		 */
+		int makeMove(const move&, unsigned int side);
+
+		/*
+		 * Unmakes the modifications made by the given move. This requires what the captured piece
+		 * was, becase the move object does not store this information.
+		 */
+		void unmakeMove(const move&, unsigned int side, int capturedPiece);
+
+		/*
+		 * Mostly a debug method that will create a string representation of the board that can
+		 * be printed to see if the move making/unmaking was correct.
+		 */
+		std::string to_string() const;
+	};
 
 	/*
 	 * This class stores information about a chess game. Every kind of information
@@ -89,11 +132,43 @@ namespace tchess
 		 */
 		void setEnPassantSquare(unsigned int side, unsigned int square);
 
+		/*
+		 * Getter for en passant square property.
+		 */
+		inline unsigned int getEnPassantSquare(unsigned int side) const {
+			return enPassantCaptureSquares[side];
+		}
+
+		/*
+		 * Getter for kingside castle rights.
+		 */
+		inline bool getKingsideCastleRights(unsigned int side) const {
+			return kingsideCastleRight[side];
+		}
+
+		/*
+		 * Getter for queenside castle rights.
+		 */
+		inline bool getQueensideCastleRights(unsigned int side) const {
+			return queensideCastleRight[side];
+		}
+
 		/**
 		 * Update the side to move variable.
 		 */
-		void setSideToMove(unsigned int side);
+		inline void setSideToMove(unsigned int side) {
+			sideToMove = side;
+		}
+
+		/*
+		 * Getter for the side to move variable.
+		 */
+		inline unsigned int getSideToMove() {
+			return sideToMove;
+		}
 	};
+
+	bool isUnderAttack(unsigned int side, unsigned int square, const chessboard& board);
 
 	/*
 	 * This template connects the two players sides. It maintaints the game board and checks if
@@ -140,8 +215,8 @@ namespace tchess
 		 * This method starts the game by requesting the first move from the white player.
 		 */
 		void beginGame() {
-
-			whitePlayer.makeMove(); //white player will call 'submitMove'.
+			std::cout << "The game begins: " << whitePlayer.description() << " vs " << blackPlayer.description() << std::endl;
+			whitePlayer.makeMove(*this); //white player will call 'submitMove'.
 		}
 
 		/**
@@ -149,10 +224,18 @@ namespace tchess
 		 * The received moves are validated.
 		 */
 		void submitMove(const move& m) {
-			if(!isValidMove(m)) {
-				//TODO: end the game
+			std::string playerWhoMoved = info.getSideToMove()==white ? whitePlayer.description() : blackPlayer.description();
+			if(isValidMove(m)) {
+				std::cout << playerWhoMoved << " has made the move " << m.to_string() << std::endl;
+				//TODO: update board
+				//update side to move
+				info.setSideToMove(info.getSideToMove() == white ? black : white);
+				//ask for the next move
+				info.getSideToMove() == white ? whitePlayer.makeMove(*this) : blackPlayer.makeMove(*this);
+			} else { //move is invalid
+				//TODO: end game
+				std::cout << playerWhoMoved << " has made an illegal move, and lost the game!" << std::endl;
 			}
-			//move is valid
 		}
 
 	private:
@@ -162,7 +245,7 @@ namespace tchess
 		 * the game_information object.
 		 */
 		bool isValidMove(const move& m) const {
-			return false; //TODO
+			return true; //TODO
 		}
 	};
 }

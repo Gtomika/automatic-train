@@ -1,9 +1,3 @@
-#include <string>
-#include <list>
-
-#include "move.h"
-#include "game.h"
-
 /*
  * board.h
  *
@@ -12,20 +6,15 @@
  *  - Mailbox: white pices are positive, black pieces are negative, empty square is 0, the sentinel
  *  files and ranks are 7.
  *
- * The board is a 12x12 array (144) looks like this:
- *   7  7  7  7  7  7  7  7  7  7  7  7
- *   7  7  7  7  7  7  7  7  7  7  7  7
- *   7  7 -4 -2 -3 -5 -6 -3 -2 -4  7  7  <-- black's backrank
- *   7  7 -1 -1 -1 -1 -1 -1 -1 -1  7  7  <-- black's pawn rank
- *   7  7  0  0  0  0  0  0  0  0  7  7
- *   7  7  0  0  0  0  0  0  0  0  7  7
- *   7  7  0  0  0  0  0  0  0  0  7  7
- *   7  7  0  0  0  0  0  0  0  0  7  7
- *   7  7  1  1  1  1  1  1  1  1  7  7  <-- white's pawn rank
- *   7  7  4  2  3  5  6  3  2  4  7  7  <-- white's backrank
- *   7  7  7  7  7  7  7  7  7  7  7  7
- *   7  7  7  7  7  7  7  7  7  7  7  7
- *
+ * The board is a 8x8 array looks like this:
+ *  -4 -2 -3 -5 -6 -3 -2 -4  <-- black's backrank
+ *  -1 -1 -1 -1 -1 -1 -1 -1  <-- black's pawn rank
+ *   0  0  0  0  0  0  0  0
+ *   0  0  0  0  0  0  0  0
+ *   0  0  0  0  0  0  0  0
+ *   0  0  0  0  0  0  0  0
+ *   1  1  1  1  1  1  1  1  <-- white's pawn rank
+ *   4  2  3  5  6  3  2  4  <-- white's backrank
  *
  *  Created on: 2021. jan. 23.
  *      Author: Gáspár Tamás
@@ -33,6 +22,12 @@
 
 #ifndef SRC_BOARD_BOARD_H_
 #define SRC_BOARD_BOARD_H_
+
+#include <string>
+#include <list>
+
+#include "move.h"
+#include "game/game.h"
 
 namespace tchess
 {
@@ -56,9 +51,6 @@ namespace tchess
 
 	//Constant for queens (negated for black).
 	extern const unsigned int queen;
-
-	//Constant for the sentinel squares (outside of the central 8x8).
-	extern const unsigned int sentinel;
 
 	//Default squares of the board, when starting a game (using numbers here instead of the constant names for compactness).
 	extern const int def_squares[144];
@@ -99,23 +91,8 @@ namespace tchess
 	extern const int offsets[6][8];
 
 
-	/*
-	 * The chessboard class which stores the current board, and allows for making and
-	 * unmaking moves. This class won't check for the validity of the moves, instead it assumes the
-	 * moves received are valid.
-	 */
-	class chessboard {
-
-		//Squares of the board (using numbers here instead of the constant names for compactness)..
-		int squares[144];
-
-	public:
-		//Creates a chessboard as it is at the start of the game.
-		chessboard();
-
-		inline int operator[](unsigned int);
-	};
-
+	class game_information;
+	class chessboard;
 
 	/*
 	 * This class creates moves from a chessboard and the side to move.
@@ -166,7 +143,8 @@ namespace tchess
 		void generatePseudoLegalNormalMoves(unsigned int side, std::list<move>&) const;
 
 		/**
-		 * Generates kingside and queenside castling moves.
+		 * Generates kingside and queenside castling moves. Pseudo legal means here that it it
+		 * not checked whether the king is in check when castling or if it passes through attacked fields.
 		 */
 		void generatePseudoLegalCastleMoves(unsigned int side, std::list<move>&) const;
 	};

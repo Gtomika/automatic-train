@@ -1,7 +1,3 @@
-#include <string>
-#include <bitset>
-#include <stdexcept>
-
 /*
  * move.h
  *
@@ -13,6 +9,10 @@
 
 #ifndef SRC_BOARD_MOVE_H_
 #define SRC_BOARD_MOVE_H_
+
+#include <string>
+#include <bitset>
+#include <stdexcept>
 
 namespace tchess
 {
@@ -62,9 +62,10 @@ namespace tchess
 	 * This exception is thrown when a move string could not
 	 * be parsed into a move.
 	 */
-	class move_parse_exception: std::exception {
+	class move_parse_exception: public std::exception {
+		std::string message;
 	public:
-		move_parse_exception(char const* const message) throw();
+		move_parse_exception(char const* const message) throw() : message(message) {}
 		virtual char const* what() const throw();
 	};
 
@@ -121,7 +122,9 @@ namespace tchess
 		/*
 		 * Returns the piece code of the piece the paawn was promoted into.
 		 * This should only be called if the move is a promotion. Piece codes are
-		 * found in board.h
+		 * found in board.h.
+		 *
+		 * This only returns the type of piece (only positive). For black, this should be negated.
 		 */
 		unsigned int promotedTo() const;
 
@@ -131,20 +134,18 @@ namespace tchess
 
 		//Creates a string format of the move.
 		std::string to_string() const;
-
-		/*
-		 * Parses a move string into a move object. This method performs some
-		 * checks in the input, but it does not guarantee that the move is legal.
-		 * Basically this method will accept the move if it can parse it, but it
-		 * is up to the game object to check if the player can actually make this move.
-		 *
-		 * The parsed move may also be "incomplete", because the parser cannot know
-		 * whether the move is a capture or not.
-		 */
-		static move parse_move(const std::string& moveString, unsigned int side);
 	};
 
-	class
+	/*
+	 * Parses a move string into a move object. This method performs some
+	 * checks in the input, but it does not guarantee that the move is legal.
+	 * Basically this method will accept the move if it can parse it, but it
+	 * is up to the game object to check if the player can actually make this move.
+	 *
+	 * The parsed move may also be "incomplete", because the parser cannot know
+	 * whether the move is a capture or not.
+	 */
+	move parse_move(const std::string& moveString, unsigned int side);
 }
 
 #endif /* SRC_BOARD_MOVE_H_ */
