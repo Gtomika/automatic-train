@@ -52,18 +52,18 @@ namespace tchess
 	//Constant for queens (negated for black).
 	extern const unsigned int queen;
 
-	//Default squares of the board, when starting a game (using numbers here instead of the constant names for compactness).
-	extern const int def_squares[144];
+	//Default squares of the board, when starting a game.
+	extern const int def_squares[64];
 
 	/*
-	 * 12x12 mailbox array, used to check if a move is out of bounds together with
+	 * 10x12 mailbox array, used to check if a move is out of bounds together with
 	 * mailbox64 array.
 	 */
-	extern const int mailbox[144];
+	extern const int mailbox[120];
 
 	/**
 	 * 8x8 mailbox array, used to check if a move is out of bounds together with
-	 * the 12x12 mailbox array.
+	 * the 10x12 mailbox array.
 	 */
 	extern const int mailbox64[64];
 
@@ -71,13 +71,13 @@ namespace tchess
 	 * This array is used to determing if a piece can slide (using the piece codes). For example the
 	 * rook (code 4) can slide, and so the fourth element in this array (index 3) is true.
 	 */
-	extern const bool canSlide[6];
+	extern const bool canSlide[7];
 
 	/**
 	 * This array determines to how many directions (not literally in case of knights) a piece can move. For example the
 	 * bishop (piece code 3) can move on the 4 diagonals, so the third element of this array is 4.
 	 */
-	extern const unsigned int offsetAmount[6];
+	extern const unsigned int offsetAmount[7];
 
 	/**
 	 * This array stores the move offsets for each piece. The offsets of piece p will be in offsets[p] sub array. For
@@ -88,7 +88,7 @@ namespace tchess
 	 * The meaning of this is that for example if the rook moves "down" by one square then we can get the destination
 	 * by adding 10 to its current square, and so 10 is one offset of the rook.
 	 */
-	extern const int offsets[6][8];
+	extern const int offsets[7][8];
 
 
 	class game_information;
@@ -148,6 +148,11 @@ namespace tchess
 		 */
 		void generatePseudoLegalCastleMoves(unsigned int side, std::list<move>&) const;
 	};
+
+	/*
+	 * Checks if the given square is under attack by the attack side.
+	 */
+	bool isAttacked(const chessboard& board, unsigned int attackingSide, unsigned int square);
 
 	/*
 	 * Will create a readable representation of a field, such as b5. For example,

@@ -62,7 +62,20 @@ namespace tchess
 
 		/*
 		 * Mostly a debug method that will create a string representation of the board that can
-		 * be printed to see if the move making/unmaking was correct.
+		 * be printed to see if the move making/unmaking was correct. It uses the letters of each
+		 * piece, and 0 for empty squares. Black pieces have a - sign in front of them.
+		 *
+		 * For example:
+		 * ---------------------------
+		 * | -R -N -B -Q -K -B -N -R |
+		 * | -P -P -P -P -P -P -P -P |
+		 * |  0  0  0  0  0  0  0  0 |
+		 * |  0  0  0  0  0  0  0  0 |
+		 * |  0  0  0  0  0  0  0  0 |
+		 * |  0  0  0  0  0  0  0  0 |
+		 * |  P  P  P  P  P  P  P  P |
+		 * |  R  N  B  Q  K  B  N  R |
+		 * ---------------------------
 		 */
 		std::string to_string() const;
 	};

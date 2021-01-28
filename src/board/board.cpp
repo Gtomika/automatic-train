@@ -33,31 +33,31 @@ namespace tchess
 	extern const unsigned int queen = 6;
 
 	//This is how the board looks at the start of a game
-	extern const int def_squares[144] = {
-		-4, -2, -3, -5, -6, -3, -2, -4,
+	extern const int def_squares[64] = {
+		-4, -2, -3, -6, -5, -3, -2, -4,
 		-1, -1, -1, -1, -1, -1, -1, -1,
 		 0,  0,  0,  0,  0,  0,  0,  0,
 		 0,  0,  0,  0,  0,  0,  0,  0,
 		 0,  0,  0,  0,  0,  0,  0,  0,
 		 0,  0,  0,  0,  0,  0,  0,  0,
 		 1,  1,  1,  1,  1,  1,  1,  1,
-		 4,  2,  3,  5,  6,  3,  2,  4
+		 4,  2,  3,  6,  5,  3,  2,  4
 	};
 
 	//Mailbox array with sentinel squares (-1).
-	extern const int mailbox[144] = {
-		 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-		 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-		 -1, -1,  0,  1,  2,  3,  4,  5,  6,  7, -1, -1,
-		 -1, -1,  8,  9, 10, 11, 12, 13, 14, 15, -1, -1,
-		 -1, -1, 16, 17, 18, 19, 20, 21, 22, 23, -1, -1,
-		 -1, -1, 24, 25, 26, 27, 28, 29, 30, 31, -1, -1,
-		 -1, -1, 32, 33, 34, 35, 36, 37, 38, 39, -1, -1,
-		 -1, -1, 40, 41, 42, 43, 44, 45, 46, 47, -1, -1,
-		 -1, -1, 48, 49, 50, 51, 52, 53, 54, 55, -1, -1,
-		 -1, -1, 56, 57, 58, 59, 60, 61, 62, 63, -1, -1,
-		 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-		 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1
+	extern const int mailbox[120] = {
+		 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+		 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+		 -1,  0,  1,  2,  3,  4,  5,  6,  7, -1,
+		 -1,  8,  9, 10, 11, 12, 13, 14, 15, -1,
+		 -1, 16, 17, 18, 19, 20, 21, 22, 23, -1,
+		 -1, 24, 25, 26, 27, 28, 29, 30, 31, -1,
+		 -1, 32, 33, 34, 35, 36, 37, 38, 39, -1,
+		 -1, 40, 41, 42, 43, 44, 45, 46, 47, -1,
+		 -1, 48, 49, 50, 51, 52, 53, 54, 55, -1,
+		 -1, 56, 57, 58, 59, 60, 61, 62, 63, -1,
+		 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+		 -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 	};
 
 	//64 sized mailbox array.
@@ -73,19 +73,20 @@ namespace tchess
 	};
 
 	//determines if pieces can slide
-	extern const bool canSlide[6] = {false, false, true, true, true, false};
+	extern const bool canSlide[7] = {false, false, false, true, true, false, true};
 
 	//determines the amount of directions pieces can move to
-	extern const unsigned int offsetAmount[6] = {0, 8, 4, 4, 8, 8};
+	extern const unsigned int offsetAmount[7] = {0, 0, 8, 4, 4, 8, 8};
 
 	//the exact offsets to get the directions of each piece
-	extern const int offsets[6][8] = {
+	extern const int offsets[7][8] = {
+			{   0,   0,  0,  0, 0,  0,  0,  0 }, // <-- unused
 			{   0,   0,  0,  0, 0,  0,  0,  0 }, // <-- unused
 			{ -21, -19,-12, -8, 8, 12, 19, 21 }, // <-- KNIGHT
 			{ -11,  -9,  9, 11, 0,  0,  0,  0 }, // <-- BISHOP
 			{ -10,  -1,  1, 10, 0,  0,  0,  0 }, // <-- ROOK
-			{ -11, -10, -9, -1, 1,  9, 10, 11 }, // <-- QUEEN
-			{ -11, -10, -9, -1, 1,  9, 10, 11 }  // <-- KING
+			{ -11, -10, -9, -1, 1,  9, 10, 11 }, // <-- KING
+			{ -11, -10, -9, -1, 1,  9, 10, 11 }  // <-- QUEEN
 		};
 
 	static const char firstFile = 'a';
@@ -324,6 +325,76 @@ namespace tchess
 		moves.clear(); //empty list
 		generatePseudoLegalNormalMoves(side, moves); //add normal moves
 		generatePseudoLegalCastleMoves(side, moves); //add castling moves
+	}
+
+	static const int pawnAttackOffsets[2][2] = {
+			{9, 11}, // <-- for white
+			{-9, -11} // <-- for black
+	};
+
+	bool isAttacked(const chessboard& board, unsigned int side, unsigned int square) { //side is the attacker side
+		bool attacked = false;
+		/*
+		 * To determine if the square is attacked I will look at all directions from that square. Can
+		 * get all directions by looking at the QUEEN + KNIGHT offsets. The queen's offsets will be sliding,
+		 * the knight's will not be.
+		 */
+		static int pieces[2] = {queen, knight};
+		for(int p = 0; p < 2; ++p) {
+			int piece = pieces[p];
+			for(unsigned int i=0; i<offsetAmount[piece]; ++i) { //check all the directions (offsets) this piece can move to
+				unsigned int distance = 0; //the "distance" we have moved on the current direction (also 1 for a knight move)
+				int direction = offsets[piece][i]; //the direction where we are checking threats
+				for (int n = square;;) {
+					n = mailbox[mailbox64[n] + direction]; //number of the next square in this direction
+
+					if (n == -1) break; //square is off the board
+					//std::cout << "Next square in " << direction << " direction:" << createSquareName(n) << std::endl;
+					++distance; //there is a square in this direction, so increase the distance
+
+					if (board[n] != empty) { //there is a piece on this square
+						if ( (side==white && board[n] > 0) || (side == black && board[n] < 0) ) { //this piece is an enemy piece (because 'side' is the attacker)
+
+							//std::cout << "Enemy piece found in direction " << direction << ": " << board[n] << std::endl;
+							/*
+							 * There is a direction from the attacked square to an enemy piece. Depending on the distance and the
+							 * type of the enemy piece, it may be able to attack this square. For example, if the direction is diagonal
+							 * then a a bishop or a pawn can attack but a pawn only if the distance is 1 (and only from 2 diagonals).
+							 */
+							const unsigned int enemyPiece = board[n] >= 0 ? board[n] : -board[n]; //type of the enemy piece that may be attacking
+							if(enemyPiece == pawn) { //pawns need special care, because they can only attack on 2 diagonals, depending on the side
+								if(distance==1 && (direction == pawnAttackOffsets[side][0] || direction == pawnAttackOffsets[side][1])) {
+									//the enemy pawn is 1 square away and on a diagonal from where it can attack
+									//std::cout << "Attacking pawn found on square " << createSquareName(n) << " (distance " << distance << ")" << std::endl;
+									return  true;
+								}
+							} else { //non pawn pieces
+								if(canSlide[enemyPiece]) { //sliding piece, so ditance does not matter
+									for(unsigned int k = 0; k<offsetAmount[enemyPiece]; ++k) { //check all direction the enemy piece can attack on
+										if(direction == offsets[enemyPiece][k]) { //if the enemy sliding piece has the direction we are checking, then it can attack
+											//std::cout << "Attacking sliding piece found" << std::endl;
+											return true;
+										}
+									}
+								} else { //this is a non sliding piece
+									if(distance == 1) { //can only threaten if the distance is 1
+										for(unsigned int k = 0; k<offsetAmount[enemyPiece]; ++k) { //check all direction the enemy piece can attack on
+											if(direction == offsets[enemyPiece][k]) { //if the enemy piece has the direction we are checking, then it can attack
+												//std::cout << "Attacking non-sliding piece found" << std::endl;
+												return true;
+											}
+										}
+									}
+								}
+							}
+						}
+						break; //any other pieces in this direction can't attack the square
+					}
+					if (!canSlide[piece]) break; //for non-sliding pieces, we must stop after 1 move in a direction
+				}
+			}
+		}
+		return attacked;
 	}
 }
 

@@ -97,9 +97,47 @@ namespace tchess
 		}
 	}
 
-	std::string to_string() const {
-		std::string bS;
-		//TODO
+	std::string chessboard::to_string() const {
+		std::string bS = "---------------------------\n";
+		for(int i=0; i<8; ++i) { //add each rank
+			bS += "|";
+			for(int j=0; j<8; ++j) {
+				std::string pieceString = " ";
+				int piece = squares[8*i + j]; //can also be empty
+				int pieceType = piece >= 0 ? piece : -piece;
+				char pieceChar;
+				switch(pieceType) { //wont allow me to use predefined piece code variables in switch
+				case 0: //empty
+					pieceChar = '0';
+					break;
+				case 1: //pawn
+					pieceChar = 'P';
+					break;
+				case 2: //knight
+					pieceChar = 'N';
+					break;
+				case 3: //bishop
+					pieceChar = 'B';
+					break;
+				case 4: //rook
+					pieceChar = 'R';
+					break;
+				case 5: //king
+					pieceChar = 'K';
+					break;
+				case 6: //queen
+					pieceChar = 'Q';
+					break;
+				default:
+					throw std::runtime_error("Corrupted board!");
+				}
+				pieceString += piece >= 0 ? " " : "-"; //add - for black pieces
+				pieceString += pieceChar;
+				bS += pieceString; //add piece string
+			}
+			bS += " |\n";
+		}
+		bS.append("---------------------------\n");
 		return bS;
 	}
 
