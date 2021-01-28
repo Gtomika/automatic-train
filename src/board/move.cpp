@@ -68,6 +68,15 @@ namespace tchess
 		return knight;
 	}
 
+	bool move::operator==(const move& other) const {
+		if(isPromotion()) {
+			return fromSquare == other.fromSquare && toSquare == other.toSquare &&
+					promotedTo() == other.promotedTo();
+		} else { //the kings dep. and dest. squares are enough to check castle equality as well
+			return fromSquare == other.fromSquare && toSquare == other.toSquare;
+		}
+	}
+
 	std::string move::to_string() const {
 		if(isKingsideCastle()) { //special moves
 			return "o-o";

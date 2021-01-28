@@ -69,6 +69,35 @@ namespace tchess
 		virtual char const* what() const throw();
 	};
 
+	/*
+	 * Stores the result of a move legality test. Used to return not only the boolean value, but
+	 * the reason for illegality as well.
+	 */
+	class move_legality_result {
+
+		const bool legal;
+
+		std::string information;
+
+		//Needed to unmake move
+		const int capturedPiece;
+
+	public:
+		move_legality_result(bool legal, const std::string& info, int cp) : legal(legal), information(info), capturedPiece(cp) {}
+
+		bool isLegal() const {
+			return legal;
+		}
+
+		std::string getInformation() const {
+			return information;
+		}
+
+		int getCapturedPiece() const {
+			return capturedPiece;
+		}
+	};
+
 	/**
 	 * Represents a chess move, using the departure square (from) and the destination
 	 * square (to).
@@ -149,6 +178,13 @@ namespace tchess
 		inline unsigned int getFromSquare() const { return fromSquare; }
 
 		inline unsigned int getToSquare() const { return toSquare; }
+
+		/*
+		 * Equality check between 2 moves. They are equal if both the departure
+		 * and the destination squares are equal. In case of promotions, the equality
+		 * of the promoted piece is also checked.
+		 */
+		bool operator==(const move& other) const;
 
 		//Creates a string format of the move.
 		std::string to_string() const;

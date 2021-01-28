@@ -55,21 +55,20 @@ namespace tchess {
 	 */
 	void test() {
 		chessboard board;
-		board.makeMove(move(createSquareNumber("e2"), createSquareNumber("e4"), quietMove), white);
+		move opening(createSquareNumber("e2"), createSquareNumber("e4"), quietMove);
+		int captured = board.makeMove(opening, white);
 		std::cout << board.to_string();
 		//bool d5attacked = isAttacked(board, white, createSquareNumber("d5"));
 		//std::cout << "d5 attacked: " << d5attacked << std::endl;
 		//bool e5attacked = isAttacked(board, white, createSquareNumber("e5"));
 		//std::cout << "e5 attacked: " << e5attacked << std::endl;
 
-		board.makeMove(move(createSquareNumber("f7"), createSquareNumber("f6"), quietMove), black);
-		std::cout << board.to_string();
-		board.makeMove(move(createSquareNumber("b1"), createSquareNumber("c3"), quietMove), white);
-		std::cout << board.to_string();
-
-		//bool e5attackedBlack = isAttacked(board, black, createSquareNumber("e5"));
-		//std::cout << "e5 attacked by black: " << e5attackedBlack << std::endl;
 		bool b5attackedWhite = isAttacked(board, white, createSquareNumber("b5"));
+		std::cout << "b5 attacked by white: " << b5attackedWhite << std::endl;
+
+		board.unmakeMove(opening, white, captured);
+
+		b5attackedWhite = isAttacked(board, white, createSquareNumber("b5"));
 		std::cout << "b5 attacked by white: " << b5attackedWhite << std::endl;
 	}
 
