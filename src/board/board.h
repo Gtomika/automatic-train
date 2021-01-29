@@ -156,6 +156,9 @@ namespace tchess
 		 */
 		std::string to_string() const;
 
+		/*
+		 * Can always quickly get the kings location for both sides.
+		 */
 		unsigned int getKingSquare(unsigned int side) const {
 			return kingSquare[side];
 		}
@@ -261,6 +264,16 @@ namespace tchess
 			return sideToMove;
 		}
 	};
+
+	/*
+	 * This method will modify the 'info' object after a move. For example if a side has moved their king
+	 * then they will loose castle rights.
+	 * Includes:
+	 *  - Update side to move to the next side.
+	 *  - Update castling rights.
+	 *  - Update en passant attack squares.
+	 */
+	void updateGameInformation(const chessboard& board, const move& m, game_information& info);
 
 	/*
 	 * This class creates moves from a chessboard and the side to move.

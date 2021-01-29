@@ -77,42 +77,56 @@ namespace tchess
 		}
 	}
 
-	std::string move::to_string() const {
+	//Helper method to convert piece codes into letters
+	char pieceNameFromCode(int pieceCode) {
+		switch(pieceCode) {
+		case 1:
+			return 'P';
+			break;
+		case 2:
+			return 'N';
+			break;
+		case 3:
+			return 'B';
+			break;
+		case 4:
+			return 'R';
+			break;
+		case 5:
+			return 'K';
+			break;
+		case 6:
+			return 'Q';
+			break;
+		default:
+			throw std::runtime_error("Invalid piece code!");
+		}
+	}
+
+	std::string move::to_string(int pieceThatMoved) const {
 		if(isKingsideCastle()) { //special moves
 			return "o-o";
 		} else if(isQueensideCastle()) {
 			return "o-o-o";
 		}
 		std::string moveString;
-
+		moveString += pieceNameFromCode(pieceThatMoved);
+		moveString += " ";
 		moveString += createSquareName(fromSquare);
-
 		if(isCapture()) { //write x if capture
 			moveString += " x ";
 		} else {
 			moveString += " ";
 		}
-
 		moveString += createSquareName(toSquare);
-
 		if(isPromotion()) { //write what it was promoted to if it was promotion
 			moveString += " = ";
-			int pieceCode = promotedTo();
-			if(pieceCode == 2) { //knight
-				moveString += "N";
-			} else if(pieceCode == 3) { //bishop
-				moveString += "B";
-			} else if(pieceCode == 4) { //rook
-				moveString += "R";
-			} else if(pieceCode == 6) { //queen
-				moveString += "Q";
-			}
+			int prom = promotedTo();
+			moveString += pieceNameFromCode(prom);
 		}
-
 		if(isEnPassant()) { //indicate en passant
 			moveString += " (en passant)";
 		}
-
 		return moveString;
 	}
 

@@ -186,8 +186,11 @@ namespace tchess
 		 */
 		bool operator==(const move& other) const;
 
-		//Creates a string format of the move.
-		std::string to_string() const;
+		/*
+		 * Creates a string format of the move. Since the move
+		 * object does not store what piece moved that must be passed in
+		 */
+		std::string to_string(int pieceThatMoved) const;
 	};
 
 	/*

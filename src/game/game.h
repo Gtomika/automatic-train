@@ -51,6 +51,11 @@ namespace tchess
 		 */
 		BlackPlayer& blackPlayer;
 
+		/*
+		 * The moves of the game are stored in this list.
+		 */
+		std::list<move> moves;
+
 	public:
 		game() = delete;
 
@@ -82,13 +87,20 @@ namespace tchess
 			move_generator generator(board, info);
 			generator.generatePseudoLegalMoves(side, pseudoLegalMoves);
 
+			int pieceThatMoved = board[m.getFromSquare()]; //will be needed later, if the move is legal (only the type)
+			pieceThatMoved = pieceThatMoved >= 0 ? pieceThatMoved : -pieceThatMoved;
 			move_legality_result result = isValidMove(m, pseudoLegalMoves); //make the move on the board while checking
 
 			if(result.isLegal()) { //move is legal
-				std::cout << playerWhoMoved << " has made the move " << m.to_string() << std::endl;
+				std::cout << playerWhoMoved << " has made the move: " << m.to_string(pieceThatMoved) << std::endl;
 				std::cout << board.to_string();
-				//update side to move
-				info.setSideToMove(info.getSideToMove() == white ? black : white);
+
+				moves.push_back(m); //save this move
+				//update game information, such as castling rights and side to move
+				updateGameInformation(board, m, info);
+
+				//check if the game has ended: checkmate, stalemate, repetition, etc TODO
+
 				side = info.getSideToMove();
 				std::string playerWhoMoves= side==white ? whitePlayer.description() : blackPlayer.description();
 				std::cout << playerWhoMoves << "'s turn to move..." << std::endl;
@@ -121,25 +133,33 @@ namespace tchess
 					unsigned int enemySide = 1 - side;
 					capturedPiece = board.makeMove(playerMove, side); //make this move on the board
 					if(playerMove.isKingsideCastle()) {
-						//for castle, not only king safety needs to be checked, but also the king cant move through attacked squares
-						if(!isAttacked(board, enemySide, playerMove.getFromSquare()) && // <-- check that king did not castle out of check
-						   !isAttacked(board, enemySide, playerMove.getFromSquare()+1) && // <-- check that king did not castle through check
-						   !isAttacked(board, enemySide, playerMove.getFromSquare()+2)) { // <-- check that king did not castle into check
-							//the king is safe and did not catle out/through attacked squares
-							legal = true;
-						} else {
-							information = "Can't castle out of/through check!";
+						if(info.getKingsideCastleRights(side)) {
+							//for castle, not only king safety needs to be checked, but also the king cant move through attacked squares
+							if(!isAttacked(board, enemySide, playerMove.getFromSquare()) && // <-- check that king did not castle out of check
+							   !isAttacked(board, enemySide, playerMove.getFromSquare()+1) && // <-- check that king did not castle through check
+							   !isAttacked(board, enemySide, playerMove.getFromSquare()+2)) { // <-- check that king did not castle into check
+								//the king is safe and did not catle out/through attacked squares
+								legal = true;
+							} else {
+								information = "Can't castle out of/through check!";
+							}
+						} else { //castle rights lost
+							information = "Don't have kingside castle rights anymore!";
 						}
 						break;
 					} else if(playerMove.isQueensideCastle()) {
 						//for castle, not only king safety needs to be checked, but also the king cant move through attacked squares
-						if(!isAttacked(board, enemySide, playerMove.getFromSquare()) && // <-- check that king did not castle out of check
-						   !isAttacked(board, enemySide, playerMove.getFromSquare()-1) && // <-- check that king did not castle through check
-						   !isAttacked(board, enemySide, playerMove.getFromSquare()-2)) { // <-- check that king did not castle into check
-							//the king is safe and did not catle out/through attacked squares
-							legal = true;
-						} else {
-							information = "Can't castle out of/through check!";
+						if(info.getQueensideCastleRights(side)) {
+							if(!isAttacked(board, enemySide, playerMove.getFromSquare()) && // <-- check that king did not castle out of check
+								   !isAttacked(board, enemySide, playerMove.getFromSquare()-1) && // <-- check that king did not castle through check
+								   !isAttacked(board, enemySide, playerMove.getFromSquare()-2)) { // <-- check that king did not castle into check
+									//the king is safe and did not catle out/through attacked squares
+									legal = true;
+								} else {
+									information = "Can't castle out of/through check!";
+								}
+						} else { //castle rights lost
+							information = "Don't have queenside castle rights anymore!";
 						}
 						break;
 					} else {

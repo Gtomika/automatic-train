@@ -108,12 +108,13 @@ namespace tchess
 	static const char firstFile = 'a';
 
 	//chessboard class implementations
+	static unsigned int defaultKingSquares[2] = {60, 4};
 
 	chessboard::chessboard() {
 		//set board square as default
 		std::memcpy(squares, tchess::def_squares, sizeof(squares));
-		kingSquare[white] = 60; //initial king positions
-		kingSquare[black] = 4;
+		kingSquare[white] = defaultKingSquares[white]; //initial king positions
+		kingSquare[black] = defaultKingSquares[black];
 	}
 
 	int chessboard::makeMove(const move& m, unsigned int side) {
@@ -256,6 +257,41 @@ namespace tchess
 
 	void game_information::setEnPassantSquare(unsigned int side, unsigned int square) {
 		enPassantCaptureSquares[side] = square;
+	}
+
+	//update method
+
+	static unsigned int defaultRookSquares[2][2] = { //queenside first, then kingside
+			{56, 63}, // <-- white rook squares
+			{0, 7} // <-- black rook squares
+	};
+
+	void updateGameInformation(const chessboard& board, const move& m, game_information& info) {
+		int sideThatMoved = info.getSideToMove(); //not updated yet
+		int enemySide = 1-sideThatMoved;
+		//handle castle rights
+		int onKingsSquare = board[defaultKingSquares[sideThatMoved]];
+		int onQRookSquare = board[defaultRookSquares[sideThatMoved][0]];
+		int onKRookSquare = board[defaultRookSquares[sideThatMoved][1]];
+		if(onKingsSquare != 5 && onKingsSquare != -5) { //if the king is not on his def square anymore, both catle rights are lost
+			info.disableKingsideCastleRight(sideThatMoved);
+			info.disableQueensideCastleRight(sideThatMoved);
+		} else if(onQRookSquare != 4 && onQRookSquare != -4) { //if the queenside rook is not at it's place, then disable queenside castle right
+			info.disableQueensideCastleRight(sideThatMoved);
+		} else if(onKRookSquare != 4 && onKRookSquare != -4) {  //if the kingside rook is not at it's place, then disable kingside castle right
+			info.disableKingsideCastleRight(sideThatMoved);
+		}
+		//remove previous en passant squares, since they 'expire after 1 move'
+		info.setEnPassantSquare(sideThatMoved, noEnPassant);
+		info.setEnPassantSquare(enemySide, noEnPassant);
+		//check for new en passant square
+		if(m.isDoublePawnPush()) { //last move was a double pawn push
+			unsigned int squareBehindPawn = sideThatMoved==white ? m.getToSquare()+8 : m.getToSquare()-8;
+			//square behin pawn is a possible en passant square for the ENEMY side
+			info.setEnPassantSquare(enemySide, squareBehindPawn);
+		}
+
+		info.setSideToMove(enemySide); //update side to move
 	}
 
 	//name / number conversion methods
