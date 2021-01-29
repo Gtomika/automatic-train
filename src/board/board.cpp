@@ -112,6 +112,8 @@ namespace tchess
 	chessboard::chessboard() {
 		//set board square as default
 		std::memcpy(squares, tchess::def_squares, sizeof(squares));
+		kingSquare[white] = 60; //initial king positions
+		kingSquare[black] = 4;
 	}
 
 	int chessboard::makeMove(const move& m, unsigned int side) {
@@ -145,7 +147,7 @@ namespace tchess
 		} else { //nothing special about this move
 			captured = squares[to]; //if there was a capture, this will save it, if not nothing changes
 			int pieceThatMoved = squares[from];
-			if(pieceThatMoved == king || pieceThatMoved == -king) {
+			if(pieceThatMoved == 5 || pieceThatMoved == -5) { //using 5 instead of 'king' const to eliminate warning
 				kingSquare[side] = to; //keep king location updated
 			}
 			squares[from] = empty;
@@ -181,7 +183,7 @@ namespace tchess
 		} else  { //normal move
 			int pieceThatMoved = squares[to]; //we can find the piece that moved on the destination square
 			squares[from] = pieceThatMoved; //place to its original square
-			if(pieceThatMoved == king || pieceThatMoved == -king) {
+			if(pieceThatMoved == 5 || pieceThatMoved == -5) { //using 5 instead of 'king' const to eliminate warning
 				kingSquare[side] = from; //keep king location updated
 			}
 			squares[to] = capturedPiece; // replace the captured piece (sets to empty in case of no capture)
@@ -450,7 +452,7 @@ namespace tchess
 			for(unsigned int square = 0; square < 64; ++square) { //check all squares
 				int piece = board[square];
 				if(piece < 0) { //found a black piece
-					if(piece == pawn) { //look for black pawn moves
+					if(piece == -1) { //look for black pawn moves (using -1 to eliminate warning)
 						generatePseudoLegalPawnMoves(side, square, moves); //find all moves for black pawn
 					} else { //look for black's non pawn moves
 						generatePseudoLegalNonPawnMoves(side, square, moves); //find all moves for this black piece
@@ -512,6 +514,7 @@ namespace tchess
 			for(unsigned int i=0; i<offsetAmount[piece]; ++i) { //check all the directions (offsets) this piece can move to
 				unsigned int distance = 0; //the "distance" we have moved on the current direction (also 1 for a knight move)
 				int direction = offsets[piece][i]; //the direction where we are checking threats
+
 				for (int n = square;;) {
 					n = mailbox[mailbox64[n] + direction]; //number of the next square in this direction
 

@@ -54,31 +54,19 @@ namespace tchess {
 	 * Can test all kind of functions here.
 	 */
 	void test() {
-		chessboard board;
-		move opening(createSquareNumber("e2"), createSquareNumber("e4"), quietMove);
-		int captured = board.makeMove(opening, white);
-		std::cout << board.to_string();
-		//bool d5attacked = isAttacked(board, white, createSquareNumber("d5"));
-		//std::cout << "d5 attacked: " << d5attacked << std::endl;
-		//bool e5attacked = isAttacked(board, white, createSquareNumber("e5"));
-		//std::cout << "e5 attacked: " << e5attacked << std::endl;
+		std::bitset<4> set(1);
+		std::cout << set << std::endl;
+		std::cout << set[3] << std::endl;
 
-		bool b5attackedWhite = isAttacked(board, white, createSquareNumber("b5"));
-		std::cout << "b5 attacked by white: " << b5attackedWhite << std::endl;
-
-		board.unmakeMove(opening, white, captured);
-
-		b5attackedWhite = isAttacked(board, white, createSquareNumber("b5"));
-		std::cout << "b5 attacked by white: " << b5attackedWhite << std::endl;
 	}
 
 }
 
 int main() {
-	tchess::test();
+	//tchess::test();
 	std::cout << "TChess program" << std::endl;
 	std::cout << "Currently only console mode is supported!" << std::endl;
-	//tchess::selectPlayersAndStart();
+	tchess::selectPlayersAndStart();
 	return 0;
 }
 

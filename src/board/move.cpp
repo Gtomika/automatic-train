@@ -89,6 +89,8 @@ namespace tchess
 
 		if(isCapture()) { //write x if capture
 			moveString += " x ";
+		} else {
+			moveString += " ";
 		}
 
 		moveString += createSquareName(toSquare);

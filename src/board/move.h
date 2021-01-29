@@ -132,38 +132,38 @@ namespace tchess
 
 		//Checks if this move is a capture.
 		inline bool isCapture() const {
-			//need to check the second bit
-			return flags[1];
+			//need to check the second bit (bitset goes backwards...)
+			return flags[2];
 		}
 
 		//Checks if this move is a promotion.
 		inline bool isPromotion() const {
-			//need to check first bit
-			return flags[0];
+			//need to check first bit  (bitset goes backwards...)
+			return flags[3];
 		}
 
 		//Checks if this move is a double pawn push.
 		inline bool isDoublePawnPush() const {
-			//not capture, promotion and only second special bit is on
-			return !flags[0] && !flags[1] && !flags[2] && flags[3];
+			//not capture, promotion and only second special bit is on  (bitset goes backwards...)
+			return !flags[3] && !flags[2] && !flags[1] && flags[0];
 		}
 
 		//Checks if this move is a kingside castle.
 		inline bool isKingsideCastle() const {
 			//not capture, promotion and only the first special bit is true
-			return !flags[0] && !flags[1] && flags[2] && !flags[3];
+			return !flags[3] && !flags[2] && flags[1] && !flags[0];
 		}
 
 		//Checks if this move is a queenside castle.
 		inline bool isQueensideCastle() const {
 			//not capture, promotion and both special bits are true
-			return !flags[0] && !flags[1] && flags[2] && flags[3];
+			return !flags[3] && !flags[2] && flags[1] && flags[0];
 		}
 
 		//Checks if this move is an en-passant capture.
 		inline bool isEnPassant() const {
 			//is a capture but not a promotion and only second special bit is true
-			return !flags[0] && flags[1] && !flags[2] && flags[3];
+			return !flags[3] && flags[2] && !flags[1] && flags[0];
 		}
 
 		/*

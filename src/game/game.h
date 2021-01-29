@@ -64,6 +64,9 @@ namespace tchess
 		 */
 		void beginGame() {
 			std::cout << "The game begins: " << whitePlayer.description() << " vs " << blackPlayer.description() << std::endl;
+			std::cout << board.to_string();
+			std::string playerWhoMoves = info.getSideToMove()==white ? whitePlayer.description() : blackPlayer.description();
+			std::cout << playerWhoMoves << "'s turn to move..." << std::endl;
 			whitePlayer.makeMove(*this); //white player will call 'submitMove'.
 		}
 
@@ -72,25 +75,29 @@ namespace tchess
 		 * The received moves are validated.
 		 */
 		void submitMove(const move& m) {
-			std::string playerWhoMoved = info.getSideToMove()==white ? whitePlayer.description() : blackPlayer.description();
+			unsigned int side = info.getSideToMove();
+			std::string playerWhoMoved = side==white ? whitePlayer.description() : blackPlayer.description();
 
 			std::list<move> pseudoLegalMoves; //generate pseudo legal moves, will be needed at least for move validation
 			move_generator generator(board, info);
-			unsigned int side = info.getSideToMove();
 			generator.generatePseudoLegalMoves(side, pseudoLegalMoves);
 
 			move_legality_result result = isValidMove(m, pseudoLegalMoves); //make the move on the board while checking
 
 			if(result.isLegal()) { //move is legal
 				std::cout << playerWhoMoved << " has made the move " << m.to_string() << std::endl;
+				std::cout << board.to_string();
 				//update side to move
 				info.setSideToMove(info.getSideToMove() == white ? black : white);
+				side = info.getSideToMove();
+				std::string playerWhoMoves= side==white ? whitePlayer.description() : blackPlayer.description();
+				std::cout << playerWhoMoves << "'s turn to move..." << std::endl;
 				//ask for the next move
-				info.getSideToMove() == white ? whitePlayer.makeMove(*this) : blackPlayer.makeMove(*this);
+				side == white ? whitePlayer.makeMove(*this) : blackPlayer.makeMove(*this);
 			} else { //move is invalid
-				board.unmakeMove(m, side, result.getCapturedPiece()); //unmakde the illegal move on the board
 				std::cout << playerWhoMoved << " has made an illegal move: " << result.getInformation() << std::endl;
-				info.getSideToMove() == white ? whitePlayer.makeMove(*this) : blackPlayer.makeMove(*this); //ask for a new move
+				board.unmakeMove(m, side, result.getCapturedPiece()); //unmakde the illegal move on the board
+				side == white ? whitePlayer.makeMove(*this) : blackPlayer.makeMove(*this); //ask for a new move
 			}
 		}
 
@@ -111,12 +118,13 @@ namespace tchess
 				if(playerMove == plMove) {
 					//move is pseudo legal
 					unsigned int side = info.getSideToMove();
+					unsigned int enemySide = 1 - side;
 					capturedPiece = board.makeMove(playerMove, side); //make this move on the board
 					if(playerMove.isKingsideCastle()) {
 						//for castle, not only king safety needs to be checked, but also the king cant move through attacked squares
-						if(!isAttacked(board, side, playerMove.getFromSquare()) && // <-- check that king did not castle out of check
-						   !isAttacked(board, side, playerMove.getFromSquare()+1) && // <-- check that king did not castle through check
-						   !isAttacked(board, side, playerMove.getFromSquare()+2)) { // <-- check that king did not castle into check
+						if(!isAttacked(board, enemySide, playerMove.getFromSquare()) && // <-- check that king did not castle out of check
+						   !isAttacked(board, enemySide, playerMove.getFromSquare()+1) && // <-- check that king did not castle through check
+						   !isAttacked(board, enemySide, playerMove.getFromSquare()+2)) { // <-- check that king did not castle into check
 							//the king is safe and did not catle out/through attacked squares
 							legal = true;
 						} else {
@@ -125,9 +133,9 @@ namespace tchess
 						break;
 					} else if(playerMove.isQueensideCastle()) {
 						//for castle, not only king safety needs to be checked, but also the king cant move through attacked squares
-						if(!isAttacked(board, side, playerMove.getFromSquare()) && // <-- check that king did not castle out of check
-						   !isAttacked(board, side, playerMove.getFromSquare()-1) && // <-- check that king did not castle through check
-						   !isAttacked(board, side, playerMove.getFromSquare()-2)) { // <-- check that king did not castle into check
+						if(!isAttacked(board, enemySide, playerMove.getFromSquare()) && // <-- check that king did not castle out of check
+						   !isAttacked(board, enemySide, playerMove.getFromSquare()-1) && // <-- check that king did not castle through check
+						   !isAttacked(board, enemySide, playerMove.getFromSquare()-2)) { // <-- check that king did not castle into check
 							//the king is safe and did not catle out/through attacked squares
 							legal = true;
 						} else {
@@ -136,7 +144,7 @@ namespace tchess
 						break;
 					} else {
 						//not a castle, only king safety is important
-						if(!isAttacked(board, side, board.getKingSquare(side))) {
+						if(!isAttacked(board, enemySide, board.getKingSquare(side))) {
 							//the king is safe after this move
 							legal = true;
 						} else {
