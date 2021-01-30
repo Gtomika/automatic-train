@@ -18,6 +18,10 @@
 
 namespace tchess
 {
+	char selectPlayerForSide(const std::string& sideName);
+
+	void selectPlayersAndStart();
+
 	/*
 	 * This template connects the two player's sides. It maintaints the game board and checks if
 	 * moves submitted are legal. IT also signals the players when it is their turn to move.
@@ -92,14 +96,48 @@ namespace tchess
 			move_legality_result result = isValidMove(m, pseudoLegalMoves); //make the move on the board while checking
 
 			if(result.isLegal()) { //move is legal
-				std::cout << playerWhoMoved << " has made the move: " << m.to_string(pieceThatMoved) << std::endl;
-				std::cout << board.to_string();
-
 				moves.push_back(m); //save this move
 				//update game information, such as castling rights and side to move
 				updateGameInformation(board, m, info);
 
-				//check if the game has ended: checkmate, stalemate, repetition, etc TODO
+				/*
+				 * Check if the game has ended: checkmate, stalemate, repetition, etc.
+				 * For this, all legal moves of the side to move is needed.
+				 * Also need to know is the side to move is in check.
+				 */
+				bool check = isAttacked(board, side, board.getKingSquare(1-side)), checkmate = false, stalemate = false;
+				generator.generatePseudoLegalMoves(1-side, pseudoLegalMoves); //all pseudo legal moves of the side to move
+				unsigned int legalMoveCount = 0;
+				for(const move& plMove: pseudoLegalMoves) {
+					move_legality_result legRes = isValidMove(plMove, pseudoLegalMoves); //this made the move on the board!!!
+					if(legRes.isLegal()) { //found at least 1 legal move, cant be stalemate, checkmate
+						std::cout << "Legal move for the opponent: " << plMove.to_string(1) << std::endl;
+						++legalMoveCount;
+						board.unmakeMove(plMove, 1-side, legRes.getCapturedPiece()); //unmake tested move
+						break;
+					}
+					board.unmakeMove(plMove, 1-side, legRes.getCapturedPiece()); //unmake tested move
+				}
+				if(legalMoveCount == 0) { //no legal moves, must be checkmate or stalemate
+					if(check) {
+						checkmate = true;
+					} else {
+						stalemate = true;
+					}
+				}
+				std::cout << playerWhoMoved << " has made the move: " << m.to_string(pieceThatMoved);
+				if(checkmate) {
+					std::cout << " (checkmate)" << std::endl;
+					endGame(false, playerWhoMoved, "Checkmate");
+					return;
+				} else if(stalemate) {
+					std::cout << " (stalemate)" << std::endl;
+					endGame(true, "", "Stalemate");
+				} else if(check) {
+					std::cout << " (check)";
+				}
+				std::cout << std::endl;
+				std::cout << board.to_string();
 
 				side = info.getSideToMove();
 				std::string playerWhoMoves= side==white ? whitePlayer.description() : blackPlayer.description();
@@ -126,11 +164,11 @@ namespace tchess
 			bool legal = false;
 			std::string information;
 			int capturedPiece;
+			unsigned int side = info.getSideToMove();
+			unsigned int enemySide = 1 - side;
 			for(const move& plMove: pseudoLegalMoves) { //check if move is at least pseudo legal
 				if(playerMove == plMove) {
 					//move is pseudo legal
-					unsigned int side = info.getSideToMove();
-					unsigned int enemySide = 1 - side;
 					capturedPiece = board.makeMove(playerMove, side); //make this move on the board
 					if(playerMove.isKingsideCastle()) {
 						if(info.getKingsideCastleRights(side)) {
@@ -175,6 +213,25 @@ namespace tchess
 				}
 			}
 			return move_legality_result(legal, information, capturedPiece);
+		}
+
+		/*
+		 * Called when the game has ended. Prints information about the ending.
+		 */
+		void endGame(bool draw, const std::string& winninSide, const std::string& message) {
+			if(draw) {
+				std::cout << "The game has ended in a draw!" << std::endl;
+			} else {
+				std::cout << winninSide << " has won the game!" << std::endl;
+			}
+			std::cout << "Reason: " << message << std::endl;
+			std::cout << "-------------------------------------" << std::endl;
+			std::cout << "Do you want to start a new game? (y = yes/anything else = no)" << std::endl;
+			std::string input;
+			std::getline(std::cin, input);
+			if(input == "y") {
+				tchess::selectPlayersAndStart();
+			}
 		}
 	};
 }
