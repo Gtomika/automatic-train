@@ -9,6 +9,8 @@
  *      Author: Gáspár Tamás
  */
 
+#include "board/move.h"
+
 namespace tchess
 {
 	//This message is printed when the user asks for help.
@@ -24,6 +26,28 @@ namespace tchess
 	std::string human_player_console::description() const {
 		std::string sideName = side == white ? "White" : "Black";
 		return "Human controlled player (" + sideName + ")";
+	}
+
+	void human_player_console::makeMove(game& controller) {
+		bool moveParsed = false;
+		while(!moveParsed) { //if use types help or something unparsable this will be printed again
+			std::cout << "--------------------------------" << std::endl;
+			std::cout << "Enter your move, or type 'help'!" << std::endl;
+			std::string input;
+			std::getline(std::cin, input);
+
+			if(input == "help") { //sked for help
+				std::cout << helpMessage;
+			} else { //try to parse a move
+				try {
+					move m = parse_move(input, side);
+					moveParsed = true;
+					controller.submitMove(m); //send move back to game controller
+				} catch(move_parse_exception& exc) {
+					std::cout << "Could not parse this move: " << exc.what() << std::endl;
+				}
+			}
+		}
 	}
 }
 

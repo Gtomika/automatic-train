@@ -21,9 +21,6 @@ namespace tchess {
 	 * Can test all kind of functions here.
 	 */
 	void test() {
-		std::bitset<4> set(1);
-		std::cout << set << std::endl;
-		std::cout << set[3] << std::endl;
 
 	}
 }

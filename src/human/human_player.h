@@ -14,7 +14,6 @@
 #include <iostream>
 #include <string>
 
-#include "board/move.h"
 #include "game/game.h"
 
 namespace tchess
@@ -27,7 +26,7 @@ namespace tchess
 	 * it is eligible to be passed to a 'game' object.
 	 * This class uses the console to interact with the user.
 	 */
-	class human_player_console {
+	class human_player_console: public player {
 
 		//Side of the player.
 		unsigned int side;
@@ -41,33 +40,12 @@ namespace tchess
 		 * Will prompt the user on the console to enter a move. The resulting move has to
 		 * be sent to the controller object.
 		 */
-		template<typename WhitePlayer, typename BlackPlayer>
-		void makeMove(game<WhitePlayer, BlackPlayer>& controller) const {
-			bool moveParsed = false;
-			while(!moveParsed) { //if use types help or something unparsable this will be printed again
-				std::cout << "--------------------------------" << std::endl;
-				std::cout << "Enter your move, or type 'help'!" << std::endl;
-				std::string input;
-				std::getline(std::cin, input);
-
-				if(input == "help") { //sked for help
-					std::cout << helpMessage;
-				} else { //try to parse a move
-					try {
-						move m = parse_move(input, side);
-						moveParsed = true;
-						controller.submitMove(m); //send move back to game controller
-					} catch(move_parse_exception& exc) {
-						std::cout << "Could not parse this move: " << exc.what() << std::endl;
-					}
-				}
-			}
-		}
+		virtual void makeMove(game& controller);
 
 		/**
 		 * Return a string describing this player as human controlled (includes played side).
 		 */
-		std::string description() const;
+		virtual std::string description() const;
 	};
 }
 

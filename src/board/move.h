@@ -130,6 +130,8 @@ namespace tchess
 		move(unsigned int fromSquare, unsigned int toSquare, unsigned int flags) :
 			fromSquare(fromSquare), toSquare(toSquare), flags(flags) {}
 
+		move(const move& other) : fromSquare(other.fromSquare), toSquare(other.toSquare), flags(other.flags) {}
+
 		//Checks if this move is a capture.
 		inline bool isCapture() const {
 			//need to check the second bit (bitset goes backwards...)
