@@ -99,7 +99,7 @@ namespace tchess
 			return 'Q';
 			break;
 		default:
-			throw std::runtime_error("Invalid piece code!");
+			return '?';
 		}
 	}
 

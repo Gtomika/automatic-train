@@ -89,10 +89,10 @@ namespace tchess
 		void submitMove(const move& m);
 
 		/*
-		 * This will return the last move made in the game. Useful for player agents
-		 * who maintain a board representation, so they can make the moves of the opponent.
+		 * Gets the move list of the game. Used by player agents to learn about the opponents
+		 * moves.
 		 */
-		move getLastMove() const;
+		const std::list<move>& getMoves() const;
 
 	private:
 

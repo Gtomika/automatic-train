@@ -195,6 +195,9 @@ namespace tchess
 		std::string to_string(int pieceThatMoved) const;
 	};
 
+	//Helper method to convert piece codes into letters
+	char pieceNameFromCode(int pieceCode);
+
 	/*
 	 * Parses a move string into a move object. This method performs some
 	 * checks in the input, but it does not guarantee that the move is legal.

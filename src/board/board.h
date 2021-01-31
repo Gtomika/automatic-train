@@ -138,6 +138,13 @@ namespace tchess
 		void unmakeMove(const move&, unsigned int side, int capturedPiece);
 
 		/*
+		 * This method checks if there is a sufficient amount of material
+		 * left on the board to continue. For example, if there are only 2 kings
+		 * on the board then there can be no checkmate, so it is insufficient.
+		 */
+		bool isInsufficientMaterial();
+
+		/*
 		 * Mostly a debug method that will create a string representation of the board that can
 		 * be printed to see if the move making/unmaking was correct. It uses the letters of each
 		 * piece, and 0 for empty squares. Black pieces have a - sign in front of them.
@@ -159,7 +166,7 @@ namespace tchess
 		/*
 		 * Can always quickly get the kings location for both sides.
 		 */
-		unsigned int getKingSquare(unsigned int side) const {
+		inline unsigned int getKingSquare(unsigned int side) const {
 			return kingSquare[side];
 		}
 	};

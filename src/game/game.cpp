@@ -116,7 +116,8 @@ namespace tchess
 					stalemate = true;
 				}
 			}
-			std::cout << playerWhoMoved << " has made the move: " << m.to_string(pieceThatMoved);
+			std::cout << "Move " << moves.size() << ": " << playerWhoMoved <<
+					" has made the move: " << m.to_string(pieceThatMoved);
 			if(checkmate) {
 				std::cout << " (checkmate)" << std::endl;
 				endGame(false, playerWhoMoved, "Checkmate");
@@ -124,6 +125,11 @@ namespace tchess
 			} else if(stalemate) {
 				std::cout << " (stalemate)" << std::endl;
 				endGame(true, "", "Stalemate");
+				return;
+			} else if(board.isInsufficientMaterial()) {
+				std::cout << std::endl;
+				endGame(true, "", "Insufficient mating material");
+				return;
 			} else if(check) {
 				std::cout << " (check)";
 			}
@@ -136,20 +142,20 @@ namespace tchess
 			//ask for the next move
 			side == white ? whitePlayer->makeMove(*this) : blackPlayer->makeMove(*this);
 		} else { //move is invalid
-			std::cout << playerWhoMoved << " has made an illegal move: " << result.getInformation() << std::endl;
+			std::cout << playerWhoMoved << " has made an illegal move: " << m.to_string(pieceThatMoved) << ", " << result.getInformation() << std::endl;
 			board.unmakeMove(m, side, result.getCapturedPiece()); //unmakde the illegal move on the board
 			side == white ? whitePlayer->makeMove(*this) : blackPlayer->makeMove(*this); //ask for a new move
 		}
 	}
 
-	move game::getLastMove() const {
-		return moves.back();
+	const std::list<move>& game::getMoves() const {
+		return moves;
 	}
 
 	move_legality_result game::isValidMove(const move& playerMove, std::list<move>& pseudoLegalMoves) {
 		bool legal = false;
 		std::string information;
-		int capturedPiece;
+		int capturedPiece = 0;
 		unsigned int side = info.getSideToMove();
 		unsigned int enemySide = 1 - side;
 		for(const move& plMove: pseudoLegalMoves) { //check if move is at least pseudo legal
@@ -207,7 +213,8 @@ namespace tchess
 		} else {
 			std::cout << winninSide << " has won the game!" << std::endl;
 		}
-		std::cout << "Reason: " << message << std::endl;
+		std::cout << "Reason: " << message << std::endl
+				<< "The board at the end of the game:\n" << board.to_string();
 		std::cout << "-------------------------------------" << std::endl;
 		std::cout << "Do you want to start a new game? (y = yes/anything else = no)" << std::endl;
 		std::string input;

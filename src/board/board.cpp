@@ -192,6 +192,37 @@ namespace tchess
 		}
 	}
 
+	bool chessboard::isInsufficientMaterial() {
+		//count all pieces
+		int pieceCounts[2][7] = {
+				{0, 0, 0, 0, 0, 0, 0},
+				{0, 0, 0, 0, 0, 0, 0}
+		};
+		for(int square = 0; square < 64; ++square) {
+			int piece = squares[square];
+			if(piece != empty) {
+				int side = piece > 0 ? white : black;
+				piece = piece > 0 ? piece : -piece;
+				pieceCounts[side][piece]++;
+			}
+		}
+		//it can only be insufficient material if both sides does not have: pawn, rook, queen
+		if(pieceCounts[white][pawn]==0 && pieceCounts[black][pawn]==0 &&
+		   pieceCounts[white][rook]==0 && pieceCounts[black][rook]==0 &&
+		   pieceCounts[white][queen]==0 && pieceCounts[black][queen]==0) {
+			/*
+			 * Both sides only have kings, knights, bishops:
+			 * king and 0/1piece vs king and 0/1 piece is insufficient
+			 */
+			unsigned int whiteNonKing = pieceCounts[white][knight] + pieceCounts[white][bishop];
+			unsigned int blackNonKing = pieceCounts[black][knight] + pieceCounts[black][bishop];
+			if(whiteNonKing <= 1 && blackNonKing <= 1) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	std::string chessboard::to_string() const {
 		std::string bS = "---------------------------\n";
 		for(int i=0; i<8; ++i) { //add each rank
@@ -201,31 +232,10 @@ namespace tchess
 				int piece = squares[8*i + j]; //can also be empty
 				int pieceType = piece >= 0 ? piece : -piece;
 				char pieceChar;
-				switch(pieceType) { //wont allow me to use predefined piece code variables in switch
-				case 0: //empty
+				if(pieceType == empty) {
 					pieceChar = '0';
-					break;
-				case 1: //pawn
-					pieceChar = 'P';
-					break;
-				case 2: //knight
-					pieceChar = 'N';
-					break;
-				case 3: //bishop
-					pieceChar = 'B';
-					break;
-				case 4: //rook
-					pieceChar = 'R';
-					break;
-				case 5: //king
-					pieceChar = 'K';
-					break;
-				case 6: //queen
-					pieceChar = 'Q';
-					break;
-				default:
-					std::cout << "Invlaid piece code: " << pieceType << std::endl;
-					throw std::runtime_error("Corrupted board!");
+				} else {
+					pieceChar = pieceNameFromCode(pieceType);
 				}
 				pieceString += piece >= 0 ? " " : "-"; //add - for black pieces
 				pieceString += pieceChar;
@@ -475,9 +485,11 @@ namespace tchess
 	}
 
 	void move_generator::generatePseudoLegalNormalMoves(unsigned int side, std::list<move>& moves) const {
+		int kingCount = 0;
 		if(side == white) { //generate moves for white
 			for(unsigned int square = 0; square < 64; ++square) { //check all squares
 				int piece = board[square];
+				if(piece == 5 || piece == -5) ++kingCount;
 				if(piece > 0 && piece < 7) { //found a white piece
 					if(piece == pawn) { //look for white pawn moves
 						generatePseudoLegalPawnMoves(side, square, moves); //find all moves for this white pawn
@@ -489,6 +501,7 @@ namespace tchess
 		} else { //generate moves for black
 			for(unsigned int square = 0; square < 64; ++square) { //check all squares
 				int piece = board[square];
+				if(piece == 5 || piece == -5) ++kingCount;
 				if(piece < 0) { //found a black piece
 					if(piece == -1) { //look for black pawn moves (using -1 to eliminate warning)
 						generatePseudoLegalPawnMoves(side, square, moves); //find all moves for black pawn
@@ -497,6 +510,9 @@ namespace tchess
 					}
 				}
 			}
+		}
+		if(kingCount > 2) {
+			throw std::runtime_error("Too many kings!");
 		}
 	}
 
