@@ -30,12 +30,10 @@ namespace tchess
 		//game info object.
 		game_information info;
 
-		unsigned int moveCount;
-
 	public:
 		random_player() = delete;
 
-		random_player(unsigned int side) : side(side), moveCount(0) {}
+		random_player(unsigned int side) : side(side) {}
 
 		/*
 		 * Will submit one randomly selected legal move.

@@ -126,11 +126,18 @@ namespace tchess
 		std::bitset<4> flags;
 
 	public:
+		move() : fromSquare(0), toSquare(0){}
+
 		//Create a move object
 		move(unsigned int fromSquare, unsigned int toSquare, unsigned int flags) :
 			fromSquare(fromSquare), toSquare(toSquare), flags(flags) {}
 
 		move(const move& other) : fromSquare(other.fromSquare), toSquare(other.toSquare), flags(other.flags) {}
+
+		/*
+		 * Assignment operator.
+		 */
+		move& operator=(const move& other);
 
 		//Checks if this move is a capture.
 		inline bool isCapture() const {

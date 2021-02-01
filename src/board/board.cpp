@@ -621,7 +621,7 @@ namespace tchess
 		return attacked;
 	}
 
-	bool isLegalMove(const move& playerMove, chessboard& board, const game_information& info, bool unmakeMove) {
+	std::pair<bool, int> isLegalMove(const move& playerMove, chessboard& board, const game_information& info, bool unmakeMove) {
 		bool legal = false;
 		unsigned int side = info.getSideToMove();
 		unsigned int enemySide = 1 - side;
@@ -656,7 +656,7 @@ namespace tchess
 		if(unmakeMove) { //unmake move if needed
 			board.unmakeMove(playerMove, side, capturedPiece);
 		}
-		return legal;
+		return std::pair<bool, int>(legal, capturedPiece);
 	}
 }
 

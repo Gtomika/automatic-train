@@ -25,6 +25,7 @@
 
 #include <string>
 #include <list>
+#include <utility>
 
 #include "move.h"
 
@@ -346,13 +347,16 @@ namespace tchess
 	 * This method checks if a move is legal. It will take into consideration the board and
 	 * the game_information object. It is assumed that the move is at least PSEUDO LEGAL!!!
 	 *
+	 * Return value is a pair, first element is legality, second is the 'captured piece' that is
+	 * needed to unmake the move (unused if the method already unmakes the moves).
+	 *
 	 * THIS WILL MAKE THE MOVE ON THE BOARD!!! That is needed to check for legality. Use the 'unmakeMove'
 	 * parameter to tell this method to also unmake the move after it finished with checking.
 	 *
 	 * The game class has a similar method, but that one returns additional information as well, this is faster
 	 * and used by the player agents who dont need information about why a move is not legal.
 	 */
-	bool isLegalMove(const move& m, chessboard& board, const game_information& info, bool unmakeMove);
+	std::pair<bool, int> isLegalMove(const move& m, chessboard& board, const game_information& info, bool unmakeMove);
 
 	/*
 	 * Will create a readable representation of a field, such as b5. For example,

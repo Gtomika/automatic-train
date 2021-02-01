@@ -8,6 +8,7 @@
 #include "game.h"
 #include "human/human_player.h"
 #include "random/random_player.h"
+#include "greedy/greedy_player.h"
 
 namespace tchess
 {
@@ -48,7 +49,7 @@ namespace tchess
 		} else if(whiteSelect == 'r') {
 			whitePlayer = new random_player(white);
 		} else if(whiteSelect == 'g') {
-			//TODO
+			whitePlayer = new greedy_player(white);
 		}
 		if(blackSelect == 'p') {
 			blackPlayer = new human_player_console(black);
@@ -57,7 +58,7 @@ namespace tchess
 		} else if(blackSelect == 'r') {
 			blackPlayer = new random_player(black);
 		} else if(blackSelect == 'g') {
-			//TODO
+			blackPlayer = new greedy_player(black);
 		}
 		game gameController(whitePlayer, blackPlayer);
 		gameController.beginGame();

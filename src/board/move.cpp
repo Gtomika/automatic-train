@@ -77,6 +77,13 @@ namespace tchess
 		}
 	}
 
+	move& move::operator=(const move& other) {
+		fromSquare = other.fromSquare;
+		toSquare = other.toSquare;
+		flags = other.flags;
+		return *this;
+	}
+
 	//Helper method to convert piece codes into letters
 	char pieceNameFromCode(int pieceCode) {
 		switch(pieceCode) {
