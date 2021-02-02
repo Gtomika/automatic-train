@@ -143,7 +143,7 @@ namespace tchess
 		 * left on the board to continue. For example, if there are only 2 kings
 		 * on the board then there can be no checkmate, so it is insufficient.
 		 */
-		bool isInsufficientMaterial();
+		bool isInsufficientMaterial() const;
 
 		/*
 		 * Mostly a debug method that will create a string representation of the board that can

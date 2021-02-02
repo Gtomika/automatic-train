@@ -192,7 +192,7 @@ namespace tchess
 		}
 	}
 
-	bool chessboard::isInsufficientMaterial() {
+	bool chessboard::isInsufficientMaterial() const {
 		//count all pieces
 		int pieceCounts[2][7] = {
 				{0, 0, 0, 0, 0, 0, 0},
