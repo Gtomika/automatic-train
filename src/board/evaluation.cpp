@@ -48,10 +48,10 @@ namespace tchess
 		   -30,  0, 15, 20, 20, 15,  0,-30,
 		   -30,  5, 10, 15, 15, 10,  5,-30,
 		   -40,-20,  0,  5,  5,  0,-20,-40,
-		   -50,-40,-30,-30,-30,-30,-40,-50
+		   -50,-25,-30,-30,-30,-30,-25,-50
 	   },
 	   {
-		   -50,-40,-30,-30,-30,-30,-40,-50,
+		   -50,-25,-30,-30,-30,-30,-25,-50,
 		   -40,-20,  0,  5,  5,  0,-20,-40,
 		   -30,  5, 10, 15, 15, 10,  5,-30,
 		   -30,  0, 15, 20, 20, 15,  0,-30,
@@ -232,9 +232,9 @@ namespace tchess
 				foundEnemyPawn = true;
 			}
 		}
-		if(!ownPawn && !enemyPawn) { //rook on an open file
+		if(!foundOwnPawn && !foundEnemyPawn) { //rook on an open file
 			return 10;
-		} else if(!ownPawn && enemyPawn) {
+		} else if(!foundOwnPawn && foundEnemyPawn) {
 			return 3;
 		} else {
 			return 0;
@@ -300,7 +300,7 @@ namespace tchess
 	 */
 	bool isIsolatedPawn(unsigned int side, unsigned int square, const chessboard& board) {
 		int ownPawn = side==white ? 1 : -1;
-		for(int i = 0; i < offsetAmount[queen]; ++i) { //can get all neightboard using the queens directions
+		for(unsigned int i = 0; i < offsetAmount[queen]; ++i) { //can get all neightboard using the queens directions
 			for (int n = square;;) {
 				n = mailbox[mailbox64[n] + offsets[queen][i]];
 				if(n == -1) break;
@@ -315,11 +315,61 @@ namespace tchess
 
 	/*
 	 * Evaluates king safety by counting friendly and enemy pieces in the kings quadrant of the board.
-	 * Also checks if the king is in check.
+	 * Queen counts as 3 pieces.
 	 * The higher the return value, the safer it is for the side.
 	 */
 	int kingSafetyEvaluation(unsigned int side, unsigned int square, const chessboard& board) {
-		//TODO
+		int file = square % 8;
+		int rank = square / 8;
+		/*
+		 * determine quadrant of the king
+		 *  ----------------------
+		 *  |         |          |
+		 *  |  q1     |    q2    |
+		 *  |---------|----------|
+		 *  |  q3     |    q4    |
+		 *  |         |          |
+		 *  ----------------------
+		 */
+		unsigned int fromFile, toFile, fromRank, toRank;
+		if(file < 4) {
+			fromFile = 0;
+			toFile = 3;
+			if(rank < 4) { //q1
+				fromRank = 0;
+				toRank = 3;
+			} else { //q3
+				fromRank = 4;
+				toRank = 7;
+			}
+		} else {
+			fromFile = 4;
+			toFile = 7;
+			if(rank < 4) { //q2
+				fromRank = 0;
+				toRank = 3;
+			} else { //q4
+				fromRank = 4;
+				toRank = 7;
+			}
+		}
+		int friendlyPieces = 0, enemyPieces = 0;
+		//count pieces in the quadrant
+		for(unsigned int i=fromRank; i<=toRank; ++i) {
+			for(unsigned int j=fromFile; j<=toFile; ++j) {
+				int piece = board[(i * 8) + j]; //piece (or empty) at this position
+				if(piece != 0) {
+					unsigned int sideOfPiece = piece > 0 ? white : black;
+					if(piece == 6 || piece == -6) { //this is a queen, counts as 3
+						sideOfPiece == side ? friendlyPieces+=3 : enemyPieces+=3;
+					} else { //not a queen, counts as 1
+						sideOfPiece == side ? ++friendlyPieces : ++enemyPieces;
+					}
+				}
+
+			}
+		}
+		return 5 * (friendlyPieces - enemyPieces);
 	}
 
 	int evaluateBoard(unsigned int side, chessboard& board, const game_information& info) {
@@ -415,17 +465,13 @@ namespace tchess
 					evaluation += queenTable[sideOfPiece][square];
 				}
 				//piece defense and attack evaluation
-				//TODO
-
 			}
 		}
-
 		if(pieceCounts[side][bishop] >= 2) { //reward for bishop pair
 			evaluation += 15;
 		} else if(pieceCounts[enemySide][bishop] >= 2) { //penalty for enemy bishop pair
 			evaluation -= 15;
 		}
-
 		return evaluation * sideMultiplier; //this multiplier makes it relative to the side to move
 	}
 }

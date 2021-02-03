@@ -60,7 +60,6 @@ namespace tchess
 		int bestEvaluation = INT32_MIN;
 		//iterate pl moves
 		for(auto it = moves.begin(); it != moves.end(); ++it) {
-			std::cout << "testing move " << (*it).to_string(1) << std::endl;
 			std::pair<bool, int> legalityTest = isLegalMove(*it, board, info, false); //will MAKE the move, but not unmake
 			if(legalityTest.first) {
 				game_information infoAfterMove = info; //copy game info to not modify the original
@@ -72,9 +71,9 @@ namespace tchess
 				if(sb.special) { //no need for static evaluation
 					 evaluation = sb.evaluation;
 				} else { //static evaluation
-					evaluation = -evaluateBoard(side, board, infoAfterMove);
+					evaluation = side == white ? evaluateBoard(side, board, infoAfterMove) : -evaluateBoard(side, board, infoAfterMove);
 				}
-				std::cout << "evaluation " << evaluation << " for move " << (*it).to_string(1) << std::endl;
+				//std::cout << "evaluation " << evaluation << " for move " << (*it).to_string(1) << std::endl;
 				//The eval function will return higher score for better positions.
 				if(evaluation >= bestEvaluation) { //new best move
 					bestEvaluation = evaluation;

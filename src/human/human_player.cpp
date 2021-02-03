@@ -21,7 +21,9 @@ namespace tchess
 			" - Kingside castling: o-o\n"
 			" - Queenside castling: o-o-o\n"
 			" - Promotions: if your move will result in a promotion, also write what piece you want to promote to!\n"
-			" for example, 'P e7 e8 Q' will promote the pawn to a queen.\n";
+			" for example, 'P e7 e8 Q' will promote the pawn to a queen.\n"
+			" - En passant: you must write 'EP' after your move, for example\n"
+			" 'P e5 d6 EP'.\n";
 
 	std::string human_player_console::description() const {
 		std::string sideName = side == white ? "White" : "Black";

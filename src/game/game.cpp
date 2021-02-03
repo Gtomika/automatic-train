@@ -76,9 +76,20 @@ namespace tchess
 		whitePlayer->makeMove(*this); //white player will call 'submitMove'.
 	}
 
-	void game::submitMove(const move& m) {
+	//Specifically for the human player, who does not have to enter if a move is capture or not
+	void captureFix(unsigned int side, const chessboard& board, move& m) {
+		if(m.isEnPassant()) return;
+		int atDest = board[m.getToSquare()];
+		if((side==white && atDest < 0) || (side==black && atDest > 0)) {
+			//appears to be capture
+			m = move(m.getFromSquare(), m.getToSquare(), capture);
+		}
+	}
+
+	void game::submitMove(move m) {
 		unsigned int side = info.getSideToMove();
 		std::string playerWhoMoved = side==white ? whitePlayer->description() : blackPlayer->description();
+		captureFix(side, board, m); //correct this move if it appears to be a capture
 
 		std::list<move> pseudoLegalMoves; //generate pseudo legal moves, will be needed at least for move validation
 		move_generator generator(board, info);
@@ -92,7 +103,6 @@ namespace tchess
 			moves.push_back(m); //save this move
 			//update game information, such as castling rights and side to move
 			updateGameInformation(board, m, info);
-
 			/*
 			 * Check if the game has ended: checkmate, stalemate, repetition, etc.
 			 * For this, all legal moves of the side to move is needed.
@@ -144,7 +154,9 @@ namespace tchess
 			side == white ? whitePlayer->makeMove(*this) : blackPlayer->makeMove(*this);
 		} else { //move is invalid
 			std::cout << playerWhoMoved << " has made an illegal move: " << m.to_string(pieceThatMoved) << ", " << result.getInformation() << std::endl;
-			board.unmakeMove(m, side, result.getCapturedPiece()); //unmakde the illegal move on the board
+			if(result.isPseudoLegal()) {  //unmakde the illegal move on the board
+				board.unmakeMove(m, side, result.getCapturedPiece());
+			}
 			side == white ? whitePlayer->makeMove(*this) : blackPlayer->makeMove(*this); //ask for a new move
 		}
 	}
@@ -155,12 +167,14 @@ namespace tchess
 
 	move_legality_result game::isValidMove(const move& playerMove, std::list<move>& pseudoLegalMoves) {
 		bool legal = false;
+		bool pseudoLegal = false;
 		std::string information;
 		int capturedPiece = 0;
 		unsigned int side = info.getSideToMove();
 		unsigned int enemySide = 1 - side;
 		for(const move& plMove: pseudoLegalMoves) { //check if move is at least pseudo legal
 			if(playerMove == plMove) {
+				pseudoLegal = true;
 				//move is pseudo legal
 				capturedPiece = board.makeMove(playerMove, side); //make this move on the board
 				if(playerMove.isKingsideCastle()) {
@@ -205,7 +219,7 @@ namespace tchess
 				}
 			}
 		}
-		return move_legality_result(legal, information, capturedPiece);
+		return move_legality_result(legal, pseudoLegal, information, capturedPiece);
 	}
 
 	void game::endGame(bool draw, const std::string& winninSide, const std::string& message) {

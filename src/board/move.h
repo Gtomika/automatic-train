@@ -77,23 +77,30 @@ namespace tchess
 
 		const bool legal;
 
+		const bool pseudoLegal;
+
 		std::string information;
 
 		//Needed to unmake move
 		const int capturedPiece;
 
 	public:
-		move_legality_result(bool legal, const std::string& info, int cp) : legal(legal), information(info), capturedPiece(cp) {}
+		move_legality_result(bool legal, bool pl, const std::string& info, int cp)
+			: legal(legal), pseudoLegal(pl), information(info), capturedPiece(cp) {}
 
-		bool isLegal() const {
+		inline bool isLegal() const {
 			return legal;
 		}
 
-		std::string getInformation() const {
+		inline bool isPseudoLegal() const {
+			return pseudoLegal;
+		}
+
+		inline std::string getInformation() const {
 			return information;
 		}
 
-		int getCapturedPiece() const {
+		inline int getCapturedPiece() const {
 			return capturedPiece;
 		}
 	};
@@ -132,7 +139,12 @@ namespace tchess
 		move(unsigned int fromSquare, unsigned int toSquare, unsigned int flags) :
 			fromSquare(fromSquare), toSquare(toSquare), flags(flags) {}
 
-		move(const move& other) : fromSquare(other.fromSquare), toSquare(other.toSquare), flags(other.flags) {}
+		move(const move& other) : fromSquare(other.fromSquare), toSquare(other.toSquare),
+				flags(0) {
+			for(int i=0; i<4; ++i) {
+				flags[i] = other.flags[i];
+			}
+		}
 
 		/*
 		 * Assignment operator.

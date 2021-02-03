@@ -73,14 +73,21 @@ namespace tchess
 			return fromSquare == other.fromSquare && toSquare == other.toSquare &&
 					promotedTo() == other.promotedTo();
 		} else { //the kings dep. and dest. squares are enough to check castle equality as well
-			return fromSquare == other.fromSquare && toSquare == other.toSquare;
+			bool squaresEqual = fromSquare == other.fromSquare && toSquare == other.toSquare;
+			bool flagsEqual = true;
+			for(int i=0; i<4; ++i) {
+				if(flags[i] != other.flags[i]) flagsEqual = false;
+			}
+			return squaresEqual && flagsEqual;
 		}
 	}
 
 	move& move::operator=(const move& other) {
 		fromSquare = other.fromSquare;
 		toSquare = other.toSquare;
-		flags = other.flags;
+		for(int i=0; i<4; ++i) {
+			flags[i] = other.flags[i];
+		}
 		return *this;
 	}
 
@@ -206,11 +213,18 @@ namespace tchess
 				//move is a promotion, with a valid promotion piece code
 				return move(fromSquare, toSquare, promMoveType);
 			} else { //this move does not appear to be a promotion
+				unsigned int moveType = quietMove;
+				if(splitMove[0]=="P" && (toSquare-fromSquare==16 || toSquare-fromSquare==-16)) {
+					moveType = doublePawnPush;
+				} else if(splitMove[0]=="P" && splitMove.size()==4 && splitMove[3]=="EP") {
+					//appears to be an en passant
+					moveType = enPassantCapture;
+				}
 				/*
-				 * This move may be a capture or some other non promotion/non castle type,
+				 * This move may be a capture
 				 * but we have no way of knowing that here, so just using quiet move type.
 				 */
-				return move(fromSquare, toSquare, quietMove);
+				return move(fromSquare, toSquare, moveType);
 			}
 		} catch (std::runtime_error& e) { //failed to parse square names
 			throw move_parse_exception("Unrecognized square name/names!");

@@ -86,7 +86,7 @@ namespace tchess
 		 * This method is used by the players to communicate with tha game object.
 		 * The received moves are validated.
 		 */
-		void submitMove(const move& m);
+		void submitMove(move m);
 
 		/*
 		 * Gets the move list of the game. Used by player agents to learn about the opponents
