@@ -180,7 +180,7 @@ namespace tchess
 	static unsigned int pieceMaterial[7] = {0, 1, 3, 3, 5, 0, 9};
 
 	bool isEndgame(const chessboard& board) {
-		unsigned int materialWhite, materialBlack;
+		unsigned int materialWhite = 0, materialBlack = 0;
 		for(unsigned int square = 0; square < 64; ++square) {
 			int piece = board[square];
 			if(piece != 0) {
@@ -278,21 +278,22 @@ namespace tchess
 	}
 
 	/*
-	 * Checks if there are doubled pawns on the file of 'square'. Returns the number of pawns
-	 * from the given side.
+	 * Checks if there are doubled pawns on the file of 'square'. Returns the number of
+	 * doubled pawns from the given side on the file. If there are no doubled pawns it will
+	 * return 0.
 	 */
 	unsigned int doubledPawnEvaluation(unsigned int side, unsigned int square, const chessboard& board) {
-		unsigned int pawnCount = 0;
+		unsigned int dPawnCount = 0;
 		int ownPawn = side==white ? 1 : -1;
 		int file = square % 8;
 		for(int i = 0; i < 8; ++i) { //iterate file
 			unsigned int squareInFile = 8 * i + file;
 			int piece = board[squareInFile];
-			if(piece == ownPawn) { //our pawn found on this file
-				++pawnCount;
+			if(piece == ownPawn) { //another one of our pawns found on this file
+				++dPawnCount;
 			}
 		}
-		return pawnCount;
+		return dPawnCount < 2 ? 0 : dPawnCount;
 	}
 
 	/*
@@ -357,7 +358,9 @@ namespace tchess
 		//count pieces in the quadrant
 		for(unsigned int i=fromRank; i<=toRank; ++i) {
 			for(unsigned int j=fromFile; j<=toFile; ++j) {
-				int piece = board[(i * 8) + j]; //piece (or empty) at this position
+				unsigned int checkedSquare = (i * 8) + j;
+				if(checkedSquare == square) continue; //king does not count
+				int piece = board[checkedSquare]; //piece (or empty) at this position
 				if(piece != 0) {
 					unsigned int sideOfPiece = piece > 0 ? white : black;
 					if(piece == 6 || piece == -6) { //this is a queen, counts as 3
@@ -414,14 +417,12 @@ namespace tchess
 					//check for doubled pawns, if not found doubled pawns on this file already
 					if(!doubledPawnCheckedFiles[square%8]) {
 						unsigned int dp = doubledPawnEvaluation(sideOfPiece, square, board);
-						if(dp >= 2) { //this side has more then 1 pawn on this file
-							if(sideOfPiece == side) { //our doubled pawns
-								evaluation -= dp * 8;
-							} else { //enemy doubled pawns
-								evaluation += dp * 8;
-							}
-							doubledPawnCheckedFiles[square%8] = true; //so we wont check this file again
+						if(sideOfPiece == side) { //our doubled pawns
+							evaluation -= dp * 8;
+						} else { //enemy doubled pawns
+							evaluation += dp * 8;
 						}
+						doubledPawnCheckedFiles[square%8] = true; //so we wont check this file again
 					}
 					if(isIsolatedPawn(sideOfPiece, square, board)) { //check for isolation
 						if(sideOfPiece == side) { //our isolated pawn

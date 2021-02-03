@@ -9,6 +9,7 @@
 #include "human/human_player.h"
 #include "random/random_player.h"
 #include "greedy/greedy_player.h"
+#include "engine/engine.h"
 
 namespace tchess
 {
@@ -45,7 +46,7 @@ namespace tchess
 		if(whiteSelect == 'p') {
 			whitePlayer = new human_player_console(white);
 		} else if(whiteSelect == 'e') {
-			//TODO
+			whitePlayer = new engine(white);
 		} else if(whiteSelect == 'r') {
 			whitePlayer = new random_player(white);
 		} else if(whiteSelect == 'g') {
@@ -54,7 +55,7 @@ namespace tchess
 		if(blackSelect == 'p') {
 			blackPlayer = new human_player_console(black);
 		} else if(blackSelect == 'e') {
-			//TODO
+			blackPlayer = new engine(black);
 		} else if(blackSelect == 'r') {
 			blackPlayer = new random_player(black);
 		} else if(blackSelect == 'g') {

@@ -31,10 +31,46 @@ namespace tchess
 	extern const int queenTable[2][64];
 
 	/*
-	 * Returns true if the board is in the endgame. This method uses Speelman's
-	 * definition: it is endgame if both sides have at most 13 worth of material (king not counted).
+	 * Returns true if the board is in the endgame.
+	 * Definition: it is endgame if both sides have at most 13 worth of material (king not counted).
 	 */
 	bool isEndgame(const chessboard& board);
+
+	/*
+	 * Will count from how many diagonals a bishop is locked in BY PAWNS. The less the better
+	 */
+	int bishopLockedFactor(unsigned int square, const chessboard& board);
+
+	/*
+	 * Evaluates if a rook is on an open file. It will check what kind of pawns are
+	 * on said file.
+	 * Returns how good the situation is for "side".
+	 */
+	int rookFileEvaluation(unsigned int side, unsigned int square, const chessboard& board);
+
+	/*
+	 * Checks if a pawn is passed, meaning there are no enemy pawns ahead of it in the same file
+	 * or the files right next to it.
+	 */
+	bool isPassedPawn(unsigned int side, unsigned int square, const chessboard& board);
+
+	/*
+	 * Checks if there are doubled pawns on the file of 'square'. Returns the number of pawns
+	 * from the given side.
+	 */
+	unsigned int doubledPawnEvaluation(unsigned int side, unsigned int square, const chessboard& board);
+
+	/*
+	 * Checks if the pawn is isolated, meaning it has no friendly pawns on the neighbouring squares.
+	 */
+	bool isIsolatedPawn(unsigned int side, unsigned int square, const chessboard& board);
+
+	/*
+	 * Evaluates king safety by counting friendly and enemy pieces in the kings quadrant of the board.
+	 * Queen counts as 3 pieces.
+	 * The higher the return value, the safer it is for the side.
+	 */
+	int kingSafetyEvaluation(unsigned int side, unsigned int square, const chessboard& board);
 
 	/*
 	 * Main static evaluator function. Used in negamax, so it evaluates relative to the side to move.

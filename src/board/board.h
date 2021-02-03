@@ -118,6 +118,9 @@ namespace tchess
 		//Creates a chessboard as it is at the start of the game.
 		chessboard();
 
+		//Creates a chessboard from an array of squares and piece. Only for debug.
+		chessboard(const int (&squares)[64]);
+
 		/*
 		 * This operator is used to access the squares of the board.
 		 */

@@ -14,14 +14,30 @@
  */
 
 #include "game/game.h"
+#include "board/evaluation.h"
 
 namespace tchess {
+
+	const int test_squares[64] = {
+		 0,  0,  -5,  0,  0,  0,  0,  0,
+		 0,  0,  0,  -4,  0,  0,  0,  0,
+		 0,  6,  0,  -1,  0,  0,  0,  0,
+		 0,  0,  0,  0,  0,  0,  1,  0,
+		 0,  0,  2,  0,  1,  0,  0,  0,
+		 0,  0,  0,  0,  1,  0,  0,  0,
+		 0,  0,  0,  3,  0,  0,  0,  0,
+		 0,  0,  5,  0,  0,  0,  0,  0
+	};
 
 	/*
 	 * Can test all kind of functions here.
 	 */
 	void test() {
+		chessboard board(test_squares);
+		std::cout << board.to_string() << std::endl;
 
+		std::cout << kingSafetyEvaluation(white, createSquareNumber("c1"), board) << std::endl;
+		std::cout << kingSafetyEvaluation(black, createSquareNumber("c8"), board) << std::endl;
 	}
 }
 

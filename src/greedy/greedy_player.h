@@ -21,7 +21,7 @@ namespace tchess
 	 */
 	class greedy_player: public player {
 
-		//The side on which this agent player.
+		//The side on which this agent plays.
 		unsigned int side;
 
 		//Board object.

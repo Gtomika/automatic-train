@@ -118,6 +118,22 @@ namespace tchess
 		kingSquare[black] = defaultKingSquares[black];
 	}
 
+	chessboard::chessboard(const int (&squares)[64]) {
+		kingSquare[white] = 100;
+		kingSquare[black] = 100;
+		for(int i=0; i<64; ++i) {
+			this->squares[i] = squares[i];
+			if(squares[i] == 5) {
+				kingSquare[white] = i;
+			} else if(squares[i] == -5) {
+				kingSquare[black] = i;
+			}
+		}
+		if(kingSquare[white]==100 || kingSquare[black]==100) {
+			throw std::runtime_error("2 kings not found on this board!");
+		}
+	}
+
 	int chessboard::makeMove(const move& m, unsigned int side) {
 		const unsigned int from = m.getFromSquare(), to = m.getToSquare();
 		int captured = empty;
