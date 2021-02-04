@@ -27,7 +27,7 @@ namespace tchess
 	public:
 		virtual ~player() {}
 
-		virtual void makeMove(game& gameController) {
+		virtual move makeMove(const game& gameController) {
 			throw std::runtime_error("Do not directly use player base class!");
 		}
 

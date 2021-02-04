@@ -27,7 +27,7 @@ namespace tchess
 		return select_randomly(start, end, gen);
 	}
 
-	void random_player::makeMove(game& gameController) {
+	move random_player::makeMove(const game& gameController) {
 		const std::list<move>& gameMoves = gameController.getMoves();
 		if(gameMoves.size() > 0) {
 			move enemyMove = gameMoves.back(); //update our board with enemy move
@@ -45,7 +45,7 @@ namespace tchess
 		board.makeMove(randomMove, side); //make own move on own board
 		updateGameInformation(board, randomMove, info);
 		info.setSideToMove(1-side); //the enemy side is to move now
-		gameController.submitMove(randomMove);
+		return randomMove;
 	}
 
 	std::string random_player::description() const {

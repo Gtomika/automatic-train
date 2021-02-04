@@ -19,7 +19,7 @@ namespace tchess
 	/*
 	 * Player agent for the Tchess engine.
 	 */
-	class engine: player {
+	class engine: public player {
 
 		//The side on which this agent plays.
 		unsigned int side;
@@ -43,7 +43,7 @@ namespace tchess
 		 * Will submit the best move it can find after evaluating the
 		 * game tree down to a certain depth.
 		 */
-		void makeMove(game& gameController);
+		move makeMove(const game& gameController);
 
 		std::string description() const;
 	};

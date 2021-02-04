@@ -37,10 +37,9 @@ namespace tchess
 		human_player_console(const human_player_console& other) : side(other.side) {}
 
 		/*
-		 * Will prompt the user on the console to enter a move. The resulting move has to
-		 * be sent to the controller object.
+		 * Will prompt the user on the console to enter a move.
 		 */
-		virtual void makeMove(game& controller);
+		virtual move makeMove(const game& gameController);
 
 		/**
 		 * Return a string describing this player as human controlled (includes played side).

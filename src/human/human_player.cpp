@@ -23,14 +23,16 @@ namespace tchess
 			" - Promotions: if your move will result in a promotion, also write what piece you want to promote to!\n"
 			" for example, 'P e7 e8 Q' will promote the pawn to a queen.\n"
 			" - En passant: you must write 'EP' after your move, for example\n"
-			" 'P e5 d6 EP'.\n";
+			" 'P e5 d6 EP'.\n"
+			" - To resign the game, type 'resign'.\n";
 
 	std::string human_player_console::description() const {
 		std::string sideName = side == white ? "White" : "Black";
 		return "Human controlled player (" + sideName + ")";
 	}
 
-	void human_player_console::makeMove(game& controller) {
+	//this player agent does not use the game controller parameter
+	move human_player_console::makeMove(const game& gameController) {
 		bool moveParsed = false;
 		while(!moveParsed) { //if use types help or something unparsable this will be printed again
 			std::cout << "--------------------------------" << std::endl;
@@ -40,16 +42,20 @@ namespace tchess
 
 			if(input == "help") { //sked for help
 				std::cout << helpMessage;
-			} else { //try to parse a move
+			} else if(input == "resign") {
+				moveParsed = true;
+				return move(0, 0, resignMove);
+			} else { //try to parse a proper move
 				try {
 					move m = parse_move(input, side);
 					moveParsed = true;
-					controller.submitMove(m); //send move back to game controller
+					return m; //send move back to game controller
 				} catch(move_parse_exception& exc) {
 					std::cout << "Could not parse this move: " << exc.what() << std::endl;
 				}
 			}
 		}
+		return move(); //will not get here
 	}
 }
 

@@ -17,6 +17,8 @@
 
 namespace tchess
 {
+	const unsigned int resignMove = 6;
+
 	//Move code for a "non-special" move that results in no capture.
 	extern const unsigned int quietMove = 0;
 

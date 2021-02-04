@@ -45,7 +45,10 @@ int main() {
 	//tchess::test();
 	std::cout << "TChess program" << std::endl;
 	std::cout << "Currently only console mode is supported!" << std::endl;
-	tchess::selectPlayersAndStart();
+	bool startGame = true;
+	while(startGame) {
+		startGame = tchess::selectPlayersAndStart();
+	}
 	return 0;
 }
 

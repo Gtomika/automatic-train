@@ -16,6 +16,9 @@
 
 namespace tchess
 {
+	//Special move that indicated that player resigned.
+	extern const unsigned int resignMove;
+
 	//Move code for a "non-special" move that results in no capture.
 	extern const unsigned int quietMove;
 
@@ -150,6 +153,11 @@ namespace tchess
 		 * Assignment operator.
 		 */
 		move& operator=(const move& other);
+
+		//Checks if this move is the special resign move.
+		inline bool isResign() const {
+			return !flags[0] && flags[1] && flags[2] && !flags[3];
+		}
 
 		//Checks if this move is a capture.
 		inline bool isCapture() const {

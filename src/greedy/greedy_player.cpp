@@ -45,7 +45,7 @@ namespace tchess
 		return {false, 0};
 	}
 
-	void greedy_player::makeMove(game& gameController) {
+	move greedy_player::makeMove(const game& gameController) {
 		const std::list<move>& gameMoves = gameController.getMoves();
 		if(gameMoves.size() > 0) {
 			move enemyMove = gameMoves.back(); //update our board with enemy move
@@ -88,7 +88,7 @@ namespace tchess
 		board.makeMove(bestMove, side); //keep board updated
 		updateGameInformation(board, bestMove, info);
 		info.setSideToMove(1-side);
-		gameController.submitMove(bestMove); //submit best greedy move
+		return bestMove; //submit best greedy move
 }
 
 	std::string greedy_player::description() const {

@@ -27,8 +27,10 @@ namespace tchess
 	/*
 	 * Allows the user to select who will play on both sides. For example, player vs engine or
 	 * player vs player.
+	 * After selection, the game will be fully player out. Returns true if a new game is to
+	 * be started.
 	 */
-	void selectPlayersAndStart();
+	bool selectPlayersAndStart();
 
 	class player;
 
@@ -43,6 +45,10 @@ namespace tchess
 	 * These player objects will then create their move and send it to the game object using 'submitMove'.
 	 */
 	class game {
+
+		bool gameEnded;
+
+		bool startNewGame;
 
 		/**
 		 * The object that stores the current state of the board.
@@ -75,18 +81,15 @@ namespace tchess
 		/**
 		 * Create the game, from references to both sides.
 		 */
-		game(player* wp, player* bp) : whitePlayer(wp), blackPlayer(bp) {}
+		game(player* wp, player* bp)
+			: gameEnded(false), startNewGame(false), whitePlayer(wp), blackPlayer(bp) {}
 
 		/**
 		 * This method starts the game by requesting the first move from the white player.
+		 * Then it will run until the game is not over, and after that it will return true
+		 * if the user wants to start another game.
 		 */
-		void beginGame();
-
-		/**
-		 * This method is used by the players to communicate with tha game object.
-		 * The received moves are validated.
-		 */
-		void submitMove(move m);
+		bool playGame();
 
 		/*
 		 * Gets the move list of the game. Used by player agents to learn about the opponents
@@ -95,6 +98,15 @@ namespace tchess
 		const std::list<move>& getMoves() const;
 
 	private:
+		/**
+		 * This method asks the player agent whose turn it is to move to submit a move.
+		 * This is done by the players 'makeMove' method. Then, it checks if this move
+		 * is legal.
+		 *  - If legal, then updates the game.
+		 *  - If illegal, then asks the player for a new move.
+		 */
+		void acceptMove();
+
 
 		/**
 		 * This method checks if a move is valid. It will take into consideration the board and
@@ -107,8 +119,9 @@ namespace tchess
 
 		/*
 		 * Called when the game has ended. Prints information about the ending.
+		 * Returns true if the user chose to start a new game.
 		 */
-		void endGame(bool draw, const std::string& winninSide, const std::string& message);
+		bool endGame(bool draw, const std::string& winninSide, const std::string& message);
 	};
 }
 

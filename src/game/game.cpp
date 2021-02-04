@@ -38,7 +38,7 @@ namespace tchess
 		return selection[0];
 	}
 
-	void selectPlayersAndStart() {
+	bool selectPlayersAndStart() {
 		char whiteSelect = selectPlayerForSide("White");
 		char blackSelect = selectPlayerForSide("Black");
 		player* whitePlayer;
@@ -62,19 +62,21 @@ namespace tchess
 			blackPlayer = new greedy_player(black);
 		}
 		game gameController(whitePlayer, blackPlayer);
-		gameController.beginGame();
+		bool startNewGame = gameController.playGame();
 		delete whitePlayer;
 		delete blackPlayer;
+		return startNewGame;
 	}
 
 	//game class implementation
 
-	void game::beginGame() {
+	bool game::playGame() {
 		std::cout << "The game begins: " << whitePlayer->description() << " vs " << blackPlayer->description() << std::endl;
 		std::cout << board.to_string();
-		std::string playerWhoMoves = info.getSideToMove()==white ? whitePlayer->description() : blackPlayer->description();
-		std::cout << playerWhoMoves << "'s turn to move..." << std::endl;
-		whitePlayer->makeMove(*this); //white player will call 'submitMove'.
+		while(!gameEnded) { //the endGame method will set this to true
+			acceptMove();
+		}
+		return startNewGame;
 	}
 
 	//Specifically for the human player, who does not have to enter if a move is capture or not
@@ -87,10 +89,21 @@ namespace tchess
 		}
 	}
 
-	void game::submitMove(move m) {
+	void game::acceptMove() {
 		unsigned int side = info.getSideToMove();
-		std::string playerWhoMoved = side==white ? whitePlayer->description() : blackPlayer->description();
-		captureFix(side, board, m); //correct this move if it appears to be a capture
+		std::string playerWhoMoves = side==white ? whitePlayer->description() : blackPlayer->description();
+		std::cout << playerWhoMoves << "'s turn to move..." << std::endl;
+		//get the next move
+		move m = side == white ? whitePlayer->makeMove(*this) : blackPlayer->makeMove(*this);
+
+		if(m.isResign()) { //check if player resigned before going any further
+			std::string playerWhoWon = side==white ? blackPlayer->description() : whitePlayer->description();
+			startNewGame = endGame(false, playerWhoWon, "Resignation");
+			return;
+		}
+
+		//correct this move if it appears to be a capture (only important for human player)
+		captureFix(side, board, m);
 
 		std::list<move> pseudoLegalMoves; //generate pseudo legal moves, will be needed at least for move validation
 		move_generator generator(board, info);
@@ -128,37 +141,30 @@ namespace tchess
 					stalemate = true;
 				}
 			}
-			std::cout << "Move " << moves.size() << ": " << playerWhoMoved <<
+			std::cout << "Move " << moves.size() << ": " << playerWhoMoves <<
 					" has made the move: " << m.to_string(pieceThatMoved);
 			if(checkmate) {
 				std::cout << " (checkmate)" << std::endl;
-				endGame(false, playerWhoMoved, "Checkmate");
+				startNewGame = endGame(false, playerWhoMoves, "Checkmate");
 				return;
 			} else if(stalemate) {
 				std::cout << " (stalemate)" << std::endl;
-				endGame(true, "", "Stalemate");
+				startNewGame = endGame(true, "", "Stalemate");
 				return;
 			} else if(board.isInsufficientMaterial()) {
 				std::cout << std::endl;
-				endGame(true, "", "Insufficient mating material");
+				startNewGame = endGame(true, "", "Insufficient mating material");
 				return;
 			} else if(check) {
 				std::cout << " (check)";
 			}
 			std::cout << std::endl;
 			std::cout << board.to_string();
-
-			side = info.getSideToMove();
-			std::string playerWhoMoves= side==white ? whitePlayer->description() : blackPlayer->description();
-			std::cout << playerWhoMoves << "'s turn to move..." << std::endl;
-			//ask for the next move
-			side == white ? whitePlayer->makeMove(*this) : blackPlayer->makeMove(*this);
 		} else { //move is invalid
-			std::cout << playerWhoMoved << " has made an illegal move: " << m.to_string(pieceThatMoved) << ", " << result.getInformation() << std::endl;
-			if(result.isPseudoLegal()) {  //unmakde the illegal move on the board
+			std::cout << playerWhoMoves << " has made an illegal move: " << m.to_string(pieceThatMoved) << ", " << result.getInformation() << std::endl;
+			if(result.isPseudoLegal()) {  //unmake the illegal move on the board
 				board.unmakeMove(m, side, result.getCapturedPiece());
 			}
-			side == white ? whitePlayer->makeMove(*this) : blackPlayer->makeMove(*this); //ask for a new move
 		}
 	}
 
@@ -223,7 +229,8 @@ namespace tchess
 		return move_legality_result(legal, pseudoLegal, information, capturedPiece);
 	}
 
-	void game::endGame(bool draw, const std::string& winninSide, const std::string& message) {
+	bool game::endGame(bool draw, const std::string& winninSide, const std::string& message) {
+		gameEnded = true;
 		if(draw) {
 			std::cout << "The game has ended in a draw!" << std::endl;
 		} else {
@@ -235,9 +242,7 @@ namespace tchess
 		std::cout << "Do you want to start a new game? (y = yes/anything else = no)" << std::endl;
 		std::string input;
 		std::getline(std::cin, input);
-		if(input == "y") {
-			tchess::selectPlayersAndStart();
-		}
+		return input == "y";
 	}
 }
 
