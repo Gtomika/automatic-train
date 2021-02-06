@@ -535,27 +535,27 @@ namespace tchess
 	void move_generator::generatePseudoLegalCastleMoves(unsigned int side, std::list<move>& moves) const {
 		if(side == white) { //make castling moves for white
 			if(gameInfo.getKingsideCastleRights(white)) { //look for kingside castle, if white still has the right
-				/*
-				 * Since this is pseudo legal generation, only need to check if the space between king and rook
-				 * is empty. Can assume that the rook and the king are on their original square, otherwise the
-				 * right would be lost.
-				 */
-				if(board[61] == empty && board[62] == empty) moves.push_back(move(60,62,kingsideCastle));
+				if(board[60] == 5 && board[61] == empty && board[62] == empty && board[63] == 4) {
+					moves.push_back(move(60,62,kingsideCastle));
+				}
 			}
 			if(gameInfo.getQueensideCastleRights(white)) { //look for kingside castle, if white still has the right
-				if(board[57] == empty && board[58] == empty && board[59] == empty) moves.push_back(move(60,58,queensideCastle));
+				if(board[56] == 4 && board[57] == empty &&
+						board[58] == empty && board[59] == empty && board[60] == 5) {
+					moves.push_back(move(60,58,queensideCastle));
+				}
 			}
 		} else { //make castling moves for black
 			if(gameInfo.getKingsideCastleRights(black)) { //look for kingside castle, if black still has the right
-				/*
-				 * Since this is pseudo legal generation, only need to check if the space between king and rook
-				 * is empty. Can assume that the rook and the king are on their original square, otherwise the
-				 * right would be lost.
-				 */
-				if(board[5] == empty && board[6] == empty) moves.push_back(move(4,6,kingsideCastle));
+				if(board[4] == -5 && board[5] == empty && board[6] == empty && board[7] == -4) {
+					moves.push_back(move(4,6,kingsideCastle));
+				}
 			}
 			if(gameInfo.getQueensideCastleRights(black)) { //look for kingside castle, if black still has the right
-				if(board[1] == empty && board[2] == empty && board[3] == empty) moves.push_back(move(4,2,queensideCastle));
+				if(board[0] == -4 && board[1] == empty &&
+						board[2] == empty && board[3] == empty && board[4] == -5) {
+					moves.push_back(move(4,2,queensideCastle));
+				}
 			}
 		}
 	}
@@ -637,7 +637,7 @@ namespace tchess
 		return attacked;
 	}
 
-	std::pair<bool, int> isLegalMove(const move& playerMove, chessboard& board, const game_information& info, bool unmakeMove) {
+	bool isLegalMove(const move& playerMove, chessboard& board, const game_information& info) {
 		bool legal = false;
 		unsigned int side = info.getSideToMove();
 		unsigned int enemySide = 1 - side;
@@ -669,10 +669,8 @@ namespace tchess
 				legal = true;
 			}
 		}
-		if(unmakeMove) { //unmake move if needed
-			board.unmakeMove(playerMove, side, capturedPiece);
-		}
-		return std::pair<bool, int>(legal, capturedPiece);
+		board.unmakeMove(playerMove, side, capturedPiece);
+		return legal;
 	}
 }
 

@@ -39,7 +39,7 @@ namespace tchess
 		generator.generatePseudoLegalMoves(side, moves); //generate all pseudo legal moves
 		//filter out illegal moves
 		auto legalEnd = std::remove_if(moves.begin(), moves.end(),
-				[&](const move& m) { return !(isLegalMove(m, board, info, true).first); });
+				[&](const move& m) { return !(isLegalMove(m, board, info)); });
 
 		move randomMove = *select_randomly(moves.begin(), legalEnd); //select legal move randomly
 		board.makeMove(randomMove, side); //make own move on own board

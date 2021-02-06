@@ -177,6 +177,25 @@ namespace tchess
 	   }
 	};
 
+	/*
+	 * Checks if the position is special in a way that it does not need to be evaluated. For example
+	 * mates and insufficient material. Enemy moves must be legal.
+	 */
+	special_board isSpecialBoard(unsigned int enemySide, const chessboard& board, const game_information& info, std::list<move>& enemyMoves) {
+		if(board.isInsufficientMaterial()) { //draw without evaluation
+			return {true, 0};
+		}
+		if(enemyMoves.size() == 0) {
+			bool enemyInCheck = isAttacked(board, 1-enemySide, board.getKingSquare(enemySide));
+			if(enemyInCheck) {
+				return {true, INT32_MAX};
+			} else {
+				return {true, 0};
+			}
+		}
+		return {false, 0};
+	}
+
 	static unsigned int pieceMaterial[7] = {0, 1, 3, 3, 5, 0, 9};
 
 	bool isEndgame(const chessboard& board) {
@@ -375,8 +394,8 @@ namespace tchess
 		return 5 * (friendlyPieces - enemyPieces);
 	}
 
-	int evaluateBoard(unsigned int side, chessboard& board, const game_information& info) {
-		int sideMultiplier = side == white ? 1 : -1;
+	int evaluateBoard(unsigned int side, const chessboard& board, const game_information& info) {
+		//int sideMultiplier = side == white ? 1 : -1;
 		unsigned int enemySide = 1-side;
 
 		int pieceCounts[2][7] = { //stores how many of each piece we found
@@ -473,7 +492,7 @@ namespace tchess
 		} else if(pieceCounts[enemySide][bishop] >= 2) { //penalty for enemy bishop pair
 			evaluation -= 15;
 		}
-		return evaluation * sideMultiplier; //this multiplier makes it relative to the side to move
+		return evaluation;
 	}
 }
 

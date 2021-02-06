@@ -19,14 +19,14 @@
 namespace tchess {
 
 	const int test_squares[64] = {
-		 0,  0,  -5,  0,  0,  0,  0,  0,
-		 0,  0,  0,  -4,  0,  0,  0,  0,
-		 0,  6,  0,  -1,  0,  0,  0,  0,
-		 0,  0,  0,  0,  0,  0,  1,  0,
-		 0,  0,  2,  0,  1,  0,  0,  0,
-		 0,  0,  0,  0,  1,  0,  0,  0,
-		 0,  0,  0,  3,  0,  0,  0,  0,
-		 0,  0,  5,  0,  0,  0,  0,  0
+			-4, -2, -3,  0, -5, -3, -2, -4,
+			-1, -1, -1, -1,  0, -1, -1, -1,
+			 0,  0,  0,  0,  0,  0,  0,  0,
+			 0,  0,  0,  0,  -1,  0,  0,  0,
+			 0,  0,  3,  0,  1,  0,  0,  0,
+			 0,  0,  0,  1,  0,  2,  0,  0,
+			 1,  1,  1,  1,  0,  1,  -6,  1,
+			 4,  2,  3,  6,  5,  0,  0,  4
 	};
 
 	/*
@@ -34,10 +34,17 @@ namespace tchess {
 	 */
 	void test() {
 		chessboard board(test_squares);
+		game_information info;
 		std::cout << board.to_string() << std::endl;
 
-		std::cout << kingSafetyEvaluation(white, createSquareNumber("c1"), board) << std::endl;
-		std::cout << kingSafetyEvaluation(black, createSquareNumber("c8"), board) << std::endl;
+		std::cout << evaluateBoard(white, board, info) << std::endl;
+
+		move m = move(createSquareNumber("g2"), createSquareNumber("h1"), capture);
+		int capped = board.makeMove(m, black);
+		board.unmakeMove(m, black, capped);
+
+		std::cout << evaluateBoard(white, board, info) << std::endl;
+		std::cout << board.to_string() << std::endl;
 	}
 }
 

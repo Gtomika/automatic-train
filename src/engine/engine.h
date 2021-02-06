@@ -14,6 +14,9 @@
 
 namespace tchess
 {
+	/*
+	 * Default tree search depth.
+	 */
 	extern const unsigned int default_depth;
 
 	/*
@@ -46,6 +49,18 @@ namespace tchess
 		move makeMove(const game& gameController);
 
 		std::string description() const;
+
+	private:
+		/*
+		 * The root negamax function. Unlike the normal negamax, this
+		 * will return the best move instead of the best evaluation.
+		 */
+		move alphaBetaNegamaxRoot();
+
+		/*
+		 * Negamax tree searching method with alpha-beta cutoff.
+		 */
+		int alphaBetaNegamax(int alpha, int beta, int depthLeft, game_information& gameInfo);
 	};
 
 }

@@ -30,6 +30,17 @@ namespace tchess
 
 	extern const int queenTable[2][64];
 
+	struct special_board {
+			bool special;
+			int evaluation;
+	};
+
+	/*
+	 * Checks if the position is special in a way that it does not need to be evaluated. For example
+	 * mates and insufficient material. Enemy moves passed in must be legal!
+	 */
+	special_board isSpecialBoard(unsigned int enemySide, const chessboard& board, const game_information& info, std::list<move>& enemyMoves);
+
 	/*
 	 * Returns true if the board is in the endgame.
 	 * Definition: it is endgame if both sides have at most 13 worth of material (king not counted).
@@ -83,7 +94,7 @@ namespace tchess
 	 *  - board: the board object
 	 *  - info: game info object needed to generate the enemy moves (to check for mates)
 	 */
-	int evaluateBoard(unsigned int side, chessboard& board, const game_information& info);
+	int evaluateBoard(unsigned int side, const chessboard& board, const game_information& info);
 }
 
 #endif /* SRC_BOARD_EVALUATION_H_ */
