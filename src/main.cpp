@@ -16,17 +16,19 @@
 #include "game/game.h"
 #include "board/evaluation.h"
 
+#include "engine/polyglot.h"
+
 namespace tchess {
 
 	const int test_squares[64] = {
-			-4, -2, -3,  0, -5, -3, -2, -4,
-			-1, -1, -1, -1,  0, -1, -1, -1,
+			-4, -2, -3, -6, -5, -3, -2, -4,
+			-1, -1, -1, -1, -1, -1, -1, -1,
 			 0,  0,  0,  0,  0,  0,  0,  0,
-			 0,  0,  0,  0,  -1,  0,  0,  0,
-			 0,  0,  3,  0,  1,  0,  0,  0,
-			 0,  0,  0,  1,  0,  2,  0,  0,
-			 1,  1,  1,  1,  0,  1,  -6,  1,
-			 4,  2,  3,  6,  5,  0,  0,  4
+			 0,  0,  0,  0,  0,  0,  0,  0,
+			 0,  0,  0,  0,  0,  0,  0,  0,
+			 0,  0,  0,  0,  0,  0,  0,  0,
+			 1,  1,  1,  1,  1,  1,  1,  1,
+			 4,  2,  3,  6,  5,  3,  2,  4
 	};
 
 	/*
@@ -35,16 +37,10 @@ namespace tchess {
 	void test() {
 		chessboard board(test_squares);
 		game_information info;
-		std::cout << board.to_string() << std::endl;
-
-		std::cout << evaluateBoard(white, board, info) << std::endl;
-
-		move m = move(createSquareNumber("g2"), createSquareNumber("h1"), capture);
-		int capped = board.makeMove(m, black);
-		board.unmakeMove(m, black, capped);
-
-		std::cout << evaluateBoard(white, board, info) << std::endl;
-		std::cout << board.to_string() << std::endl;
+		move opening(createSquareNumber("e2"), createSquareNumber("e4"), doublePawnPush);
+		board.makeMove(opening, white);
+		updateGameInformation(board, opening, info);
+		std::cout << std::hex << polyKeyFromBoard(board, info) << std::dec << std::endl;
 	}
 }
 

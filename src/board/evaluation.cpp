@@ -177,18 +177,21 @@ namespace tchess
 	   }
 	};
 
+	const int WORST_VALUE = INT32_MIN + 1;
+
 	/*
 	 * Checks if the position is special in a way that it does not need to be evaluated. For example
 	 * mates and insufficient material. Enemy moves must be legal.
 	 */
-	special_board isSpecialBoard(unsigned int enemySide, const chessboard& board, const game_information& info, std::list<move>& enemyMoves) {
+	special_board isSpecialBoard(unsigned int enemySide, const chessboard& board,
+			const game_information& info, std::list<move>& enemyMoves, int depth) {
 		if(board.isInsufficientMaterial()) { //draw without evaluation
 			return {true, 0};
 		}
 		if(enemyMoves.size() == 0) {
 			bool enemyInCheck = isAttacked(board, 1-enemySide, board.getKingSquare(enemySide));
 			if(enemyInCheck) {
-				return {true, INT32_MAX};
+				return {true, WORST_VALUE + depth };
 			} else {
 				return {true, 0};
 			}

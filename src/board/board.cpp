@@ -249,7 +249,7 @@ namespace tchess
 				int pieceType = piece >= 0 ? piece : -piece;
 				char pieceChar;
 				if(pieceType == empty) {
-					pieceChar = '0';
+					pieceChar = '.';
 				} else {
 					pieceChar = pieceNameFromCode(pieceType);
 				}

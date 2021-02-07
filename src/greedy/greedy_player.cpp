@@ -42,7 +42,7 @@ namespace tchess
 			//the move is legal, and it is made on the board, now evaluate
 			std::list<move> enemyMoves = createEnemyMoves(1-side, board, infoAfterMove);
 			enemyMoves.remove_if(legalCheck); //filter out illegal moves
-			special_board sb = isSpecialBoard(1-side, board, infoAfterMove, enemyMoves);
+			special_board sb = isSpecialBoard(1-side, board, infoAfterMove, enemyMoves, 1);
 			int evaluation = 0;
 			if(sb.special) { //no need for static evaluation
 				 evaluation = sb.evaluation;

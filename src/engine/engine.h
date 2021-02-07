@@ -11,6 +11,7 @@
 #define SRC_ENGINE_ENGINE_H_
 
 #include "game/player.h"
+#include "polyglot.h"
 
 namespace tchess
 {
@@ -36,11 +37,17 @@ namespace tchess
 		//game info object.
 		game_information info;
 
+		//Stores if the engine is playing opening mode (from book) or not.
+		bool opening;
+
+		//Polyglot opening book.
+		opening_book openingBook;
+
 	public:
 		engine() = delete;
 
 		engine(unsigned int side, unsigned int depth = default_depth)
-			: side(side), depth(depth) {}
+			: side(side), depth(depth), opening(true) {}
 
 		/*
 		 * Will submit the best move it can find after evaluating the

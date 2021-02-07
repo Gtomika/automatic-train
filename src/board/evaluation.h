@@ -36,10 +36,16 @@ namespace tchess
 	};
 
 	/*
+	 * Worst possible value that the evaluation can return. For example when checkmated.
+	 */
+	extern const int WORST_VALUE;
+
+	/*
 	 * Checks if the position is special in a way that it does not need to be evaluated. For example
 	 * mates and insufficient material. Enemy moves passed in must be legal!
 	 */
-	special_board isSpecialBoard(unsigned int enemySide, const chessboard& board, const game_information& info, std::list<move>& enemyMoves);
+	special_board isSpecialBoard(unsigned int enemySide, const chessboard& board,
+			const game_information& info, std::list<move>& enemyMoves, int depth);
 
 	/*
 	 * Returns true if the board is in the endgame.

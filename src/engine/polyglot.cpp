@@ -4,6 +4,10 @@
  *  Created on: 2021. febr. 6.
  *      Author: Gáspár Tamás
  */
+#include <cstdio>
+#include <random>
+#include <utility>
+#include <vector>
 
 #include "polyglot.h"
 
@@ -205,7 +209,7 @@ namespace tchess
 	   U64(0x31D71DCE64B2C310), U64(0xF165B587DF898190), U64(0xA57E6339DD2CF3A0), U64(0x1EF6E6DBB1961EC9),
 	   U64(0x70CC73D90BC26E24), U64(0xE21A6B35DF0C3AD7), U64(0x003A93D8B2806962), U64(0x1C99DED33CB890A1),
 	   U64(0xCF3145DE0ADD4289), U64(0xD0E4427A5514FB72), U64(0x77C621CC9FB3A483), U64(0x67A34DAC4356550B),
-	   U64(0xF8D626AAAF278509),
+	   U64(0xF8D626AAAF278509)
 	};
 
 	uint64 polyKeyFromBoard(const chessboard& board, const game_information& info) {
@@ -213,7 +217,7 @@ namespace tchess
 		unsigned int rank = 0, file = 0;
 		//iterate board and find pieces
 		for(unsigned int square = 0; square < 64; ++square) {
-			if(board[square] != empty) { //piece found
+			if(board[square] != 0) { //piece found
 				unsigned int polyPiece = polyPieceCode(board[square]); //get polyglot piece code
 				//find rank and board of square
 				file = square % 8;
@@ -238,9 +242,9 @@ namespace tchess
 		}
 		//add en passant sqaure to board key
 		offset = 772;
-		unsigned int whiteEnPassantSquare = info.getEnPassantSquare(white);
-		unsigned int blackEnPassantSquare = info.getEnPassantSquare(black);
-		unsigned int enPassantSquare = noEnPassant;
+		int whiteEnPassantSquare = info.getEnPassantSquare(white);
+		int blackEnPassantSquare = info.getEnPassantSquare(black);
+		int enPassantSquare = noEnPassant;
 		int capturingPawn = 0;
 		unsigned int pushedPawnSquare = 0; //this is in front of the en passant square
 		if(whiteEnPassantSquare != noEnPassant) { //there will only be at most one of ep squares
@@ -309,6 +313,152 @@ namespace tchess
 			break;
 		default:
 			throw std::runtime_error("Can't convert to poly piece code: " + pieceCode);
+		}
+	}
+
+	opening_book::opening_book() {
+		//read entries into memory
+		FILE* bookFile = std::fopen("res\\codekiddy.bin", "rb");
+		if(bookFile != NULL) {
+			fseek(bookFile, 0, SEEK_END);
+			//check the amount of entries
+			unsigned int pos = ftell(bookFile);
+			if(pos < sizeof(polyglot_book_entry)) {
+				throw std::runtime_error("Opening book is empty!");
+			}
+			entriesNumber = pos / sizeof(polyglot_book_entry);
+			//allocate memory for book
+			entries = new polyglot_book_entry[entriesNumber];
+			//go to start of file
+			rewind(bookFile);
+			//read in entries
+			fread(entries, sizeof(polyglot_book_entry),	entriesNumber, bookFile);
+		} else {
+			throw std::runtime_error("Opening book file not found!");
+		}
+	}
+
+	opening_book::~opening_book() {
+		delete[] entries;
+	}
+
+	//! Byte swap unsigned short
+	unsigned short swap_uint16(unsigned short val) {
+	    return (val << 8) | (val >> 8 );
+	}
+
+	//! Byte swap unsigned int
+	unsigned int swap_uint32(unsigned int val) {
+	    val = ((val << 8) & 0xFF00FF00 ) | ((val >> 8) & 0xFF00FF );
+	    return (val << 16) | (val >> 16);
+	}
+
+	// byte swap unsigned long long
+	uint64 swap_uint64(uint64 val) {
+	    val = ((val << 8) & 0xFF00FF00FF00FF00ULL ) | ((val >> 8) & 0x00FF00FF00FF00FFULL );
+	    val = ((val << 16) & 0xFFFF0000FFFF0000ULL ) | ((val >> 16) & 0x0000FFFF0000FFFFULL );
+	    return (val << 32) | (val >> 32);
+	}
+
+	const static unsigned int defaultKingSquares[2] = {60, 4};
+	const static unsigned int polyKingsideCastleDest[2] = {63, 7}; //h1 and h8 are used
+	const static unsigned int polyQueensideCastleDest[2] = {56, 0}; //a1 and a8 are used
+
+	//Converts polyglot promotion code into internal promotion code
+	unsigned int polyPromotedPiece(unsigned int promotionPiece, bool capture) {
+		switch(promotionPiece) {
+		case 1:
+			return capture ? knightPromotionCap : knightPromotion;
+			break;
+		case 2:
+			return capture ? bishopPromotionCap : bishopPromotion;
+			break;
+		case 3:
+			return capture ? rookPromotionCap : rookPromotion;
+			break;
+		case 4:
+			return capture ? queenPromotionCap : queenPromotion;
+			break;
+		default:
+			throw std::runtime_error("Invalid promotion code!");
+		}
+	}
+
+	//Parses a move object from the polyglot move key
+	move moveFromPolyKey(unsigned short moveKey, const chessboard& board, const game_information& info) {
+		unsigned short fromFile = (moveKey>>6)&7,
+					   fromRank = 7 - ((moveKey>>9)&7),
+					   toFile = (moveKey>>0)&7,
+					   toRank = 7 - ((moveKey>>3)&7);
+		int promotionPiece = (moveKey >> 12) & 7;
+		unsigned int fromSquare = (8 * fromRank) + fromFile, //create from and to squares
+					 toSquare = (8 * toRank) + toFile;
+		//std::cout << "Move found: " << createSquareName(fromSquare) << createSquareName(toSquare) << std::endl;
+		unsigned int side = info.getSideToMove();
+		//check if the move is castling
+		int kingOfSide = side == white ? 5 : -5;
+		if(fromSquare==defaultKingSquares[side] && toSquare==polyKingsideCastleDest[side] && board[fromSquare] == kingOfSide) {
+			//this move is a kingside castle, but the destination square is NOT the same for internal move representation!!
+			unsigned int internalToSquare = fromSquare + 2;
+			return move(fromSquare, internalToSquare, kingsideCastle);
+		}
+		if(fromSquare==defaultKingSquares[side] && toSquare==polyQueensideCastleDest[side] && board[fromSquare] == kingOfSide) {
+			unsigned int internalToSquare = fromSquare - 2;
+			return move(fromSquare, internalToSquare, queensideCastle);
+		}
+		//check if this move is a promotion, although unlikely in an opening
+		unsigned int promotionRank = side == white ? 1 : 6;
+		int pawnOfSide = side == white ? 1 : -1;
+		if(board[fromSquare]==pawnOfSide && fromRank==promotionRank) {
+			//is a promotion, but can also be a capture
+			bool capture = false;
+			if(side == white && board[toSquare] < 0) {
+				capture = true;
+			} else if(side == black && board[toSquare] > 0) {
+				capture = true;
+			}
+			unsigned int promType = polyPromotedPiece(promotionPiece, capture);
+			return move(fromSquare, toSquare, promType);
+		}
+		//check if move is en passant
+		if(board[fromSquare]==pawnOfSide && fromFile!=toFile && board[toSquare]==0) {
+			return move(fromSquare, toSquare, enPassantCapture);
+		}
+		//check if this move is a double pawn push
+		if(board[fromSquare]==pawnOfSide && (toSquare-fromSquare==16 || fromSquare-toSquare==16)) {
+			return move(fromSquare, toSquare, doublePawnPush);
+		}
+		//not a special move
+		bool isCapture = false;
+		if((side==white && board[toSquare]<0) || (side==black && board[toSquare]>0)) {
+			isCapture = true;
+		}
+		return move(fromSquare, toSquare, isCapture ? capture : quietMove);
+	}
+
+	move opening_book::getBookMove(const chessboard& board, const game_information& info) {
+		uint64 boardKey = polyKeyFromBoard(board, info);
+		//std::cout << "Finding moves for board key: " << std::hex << boardKey << std::dec << std::endl;
+		unsigned short moveKey;
+		//list moves from the book
+		std::vector<move> bookMoves;
+		std::vector<unsigned short> weights;
+		for(polyglot_book_entry* entry = entries; entry < entries + entriesNumber; entry++) {
+			if(boardKey == swap_uint64(entry->boardKey)) { //found the board in the book
+				moveKey = swap_uint16(entry->move);
+				move m = moveFromPolyKey(moveKey, board, info);
+				unsigned short weight = swap_uint16(entry->weight); //how good this move is
+				bookMoves.push_back(m);
+				weights.push_back(weight);
+			}
+		}
+		if(bookMoves.size() > 0) {
+			std::default_random_engine generator;
+			 std::discrete_distribution<int> distribution(weights.begin(), weights.end());
+			 unsigned int selectedIndex = distribution(generator);
+			 return bookMoves[selectedIndex];
+		} else { //no book move found
+			return move(0,0,quietMove);
 		}
 	}
 }

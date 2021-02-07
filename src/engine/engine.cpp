@@ -15,8 +15,6 @@ namespace tchess
 {
 	const unsigned int default_depth = 4;
 
-	static move testMove(22,54, capture);
-
 	move engine::alphaBetaNegamaxRoot() {
 		unsigned int side = info.getSideToMove();
 		//create legal moves for this board and side
@@ -27,18 +25,19 @@ namespace tchess
 		moves.remove_if(legalCheck);
 		//we cant be at maximum depth, since this is the root call
 		move bestMove;
-		int bestEvaluation = INT32_MIN+1;
+		int bestEvaluation = WORST_VALUE;
 
 		int count = 0;
 		for(const move& _move: moves) { //iterate legal moves
 			int p = board[_move.getFromSquare()];
 			p = p > 0 ? p : -p;
+			//this is not working in eclipse console but does in normal console!
 			std::cout << "\rAnalyzing " << ++count << ". move out of " << moves.size()
-								<< ", move: " << _move.to_string(p);
+								<< ", move: " << _move.to_string(p) << "           "; //<- to delete whole line
 			int capturedPiece = board.makeMove(_move, side);
 			game_information infoAfterMove = info; //create a game info object
 			updateGameInformation(board, _move, infoAfterMove); //update new info object with move
-			int evaluation = -alphaBetaNegamax(INT32_MIN+1, INT32_MAX, depth, infoAfterMove); //move down in the tree
+			int evaluation = -alphaBetaNegamax(WORST_VALUE, INT32_MAX, depth-1, infoAfterMove); //move down in the tree
 			board.unmakeMove(_move, side, capturedPiece); //unmake the move before moving on
 			if(evaluation >= bestEvaluation) {
 				bestEvaluation = evaluation;
@@ -59,7 +58,7 @@ namespace tchess
 		moves.remove_if(legalCheck); //filter out illegal moves
 
 		if(depthLeft == 0) { //we are at maximum search depth, evaluate
-			special_board sb = isSpecialBoard(side, board, gameInfo, moves); //detect mates and drawn games
+			special_board sb = isSpecialBoard(side, board, gameInfo, moves, depth - depthLeft); //detect mates and drawn games
 			if(sb.special) {
 				return sb.evaluation; //return special evaluation
 			} else {
@@ -67,7 +66,7 @@ namespace tchess
 			}
 		}
 
-		int bestEvaluation = INT32_MIN+1;
+		int bestEvaluation = WORST_VALUE;
 
 		for(const move& move: moves) { //iterate legal moves
 			int capturedPiece = board.makeMove(move, side);
@@ -95,8 +94,18 @@ namespace tchess
 			board.makeMove(enemyMove, 1-side);
 			updateGameInformation(board, enemyMove, info); //update game information
 		}
+		move bestMove;
+		move bookMove(0,0,quietMove);
+		if(opening) bookMove = openingBook.getBookMove(board, info);
+		if(!(bookMove == move(0,0,quietMove))) { //found a book opening
+			std::cout << "I am playing from my opening book!" << std::endl;
+			bestMove = bookMove;
+		} else {
+			std::cout << "I am looking for my move..." << std::endl;
+			opening = false; //not in the opening anymore
+			bestMove = alphaBetaNegamaxRoot();
+		}
 		//std::cout << "My board before my move:\n" << board.to_string();
-		move bestMove = alphaBetaNegamaxRoot();
 		//update out board with the selected move
 		board.makeMove(bestMove, side); //keep board updated
 		updateGameInformation(board, bestMove, info);
