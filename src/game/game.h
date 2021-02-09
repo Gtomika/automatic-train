@@ -11,7 +11,7 @@
 #define SRC_GAME_GAME_H_
 
 #include <iostream>
-#include <list>
+#include <vector>
 
 #include "board/board.h"
 #include "board/move.h"
@@ -73,7 +73,7 @@ namespace tchess
 		/*
 		 * The moves of the game are stored in this list.
 		 */
-		std::list<move> moves;
+		std::vector<move> moves;
 
 	public:
 		game() = delete;
@@ -95,7 +95,7 @@ namespace tchess
 		 * Gets the move list of the game. Used by player agents to learn about the opponents
 		 * moves.
 		 */
-		const std::list<move>& getMoves() const;
+		const std::vector<move>& getMoves() const;
 
 	private:
 		/**
@@ -115,7 +115,7 @@ namespace tchess
 		 * THIS WILL MAKE THE MOVE ON THE BOARD!!! That is needed to check for legality. If the move turns out to
 		 * be illegal, the move must be unmaked.
 		 */
-		move_legality_result isValidMove(const move& playerMove, std::list<move>& pseudoLegalMoves);
+		move_legality_result isValidMove(const move& playerMove, std::vector<move>& pseudoLegalMoves);
 
 		/*
 		 * Called when the game has ended. Prints information about the ending.

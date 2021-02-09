@@ -28,7 +28,7 @@ typedef unsigned long long uint64;
 
 namespace tchess
 {
-	//Random array used by polyglot books.
+	//Random array used by polyglot books AND the transposition table.
 	extern const uint64 Random64[781];
 
 	/*

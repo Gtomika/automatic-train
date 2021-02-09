@@ -1,2 +1,3 @@
 http://web.archive.org/web/20040403211728/brucemo.com/compchess/programming/index.htm
 http://hgm.nubati.net/book_format.html
+https://adamberent.com/2019/03/02/transposition-table-and-zobrist-hashing/

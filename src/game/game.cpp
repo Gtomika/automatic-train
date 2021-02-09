@@ -105,7 +105,7 @@ namespace tchess
 		//correct this move if it appears to be a capture (only important for human player)
 		captureFix(side, board, m);
 
-		std::list<move> pseudoLegalMoves; //generate pseudo legal moves, will be needed at least for move validation
+		std::vector<move> pseudoLegalMoves; //generate pseudo legal moves, will be needed at least for move validation
 		move_generator generator(board, info);
 		generator.generatePseudoLegalMoves(side, pseudoLegalMoves);
 
@@ -168,11 +168,11 @@ namespace tchess
 		}
 	}
 
-	const std::list<move>& game::getMoves() const {
+	const std::vector<move>& game::getMoves() const {
 		return moves;
 	}
 
-	move_legality_result game::isValidMove(const move& playerMove, std::list<move>& pseudoLegalMoves) {
+	move_legality_result game::isValidMove(const move& playerMove, std::vector<move>& pseudoLegalMoves) {
 		bool legal = false;
 		bool pseudoLegal = false;
 		std::string information;

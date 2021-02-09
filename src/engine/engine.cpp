@@ -5,30 +5,34 @@
  *      Author: Gáspár Tamás
  */
 
-#include <list>
+#include <vector>
 #include <limits>
+#include <algorithm>
 
 #include "engine.h"
 #include "board/evaluation.h"
 
 namespace tchess
 {
-	const unsigned int default_depth = 4;
+	const unsigned int default_depth = 5;
+
+	static unsigned int tt_cut_count = 0;
 
 	move engine::alphaBetaNegamaxRoot() {
 		unsigned int side = info.getSideToMove();
 		//create legal moves for this board and side
-		std::list<move> moves;
+		std::vector<move> moves;
 		move_generator generator(board, info);
 		generator.generatePseudoLegalMoves(side, moves);
 		auto legalCheck = [&](const move& m) { return !(isLegalMove(m, board, info)); };
-		moves.remove_if(legalCheck);
+		auto legalEnd = std::remove_if(moves.begin(), moves.end(), legalCheck);
 		//we cant be at maximum depth, since this is the root call
 		move bestMove;
 		int bestEvaluation = WORST_VALUE;
 
 		int count = 0;
-		for(const move& _move: moves) { //iterate legal moves
+		for(auto it = moves.begin(); it != legalEnd; it++) { //iterate legal moves
+			move& _move = *it;
 			int p = board[_move.getFromSquare()];
 			p = p > 0 ? p : -p;
 			//this is not working in eclipse console but does in normal console!
@@ -45,50 +49,104 @@ namespace tchess
 			}
 		}
 		std::cout << std::endl;
+		ttable->invalidateEntries();
+		//ttable->printDebug();
 		return bestMove;
 	}
 
-	int engine::alphaBetaNegamax(int alpha, int beta, int depthLeft, game_information& gameInfo) {
+	//Helper struct that stores if a move was checked to be legal, and what is the result of the check.
+	struct legality_checked {
+		bool checked;
+		bool legal;
+		legality_checked() : checked(false), legal(false) {}
+	};
+
+	int engine::alphaBetaNegamax(int alpha, int beta, unsigned int depthLeft, game_information& gameInfo) {
 		unsigned int side = gameInfo.getSideToMove();
-		//create legal moves for this board and side
-		std::list<move> moves;
+		int alphaOriginal = alpha;
+
+		//look up position in transposition table
+		uint64 zobristKey = createZobrishHash(board, gameInfo);
+		transposition_entry& entry = ttable->find(zobristKey);
+		if(entry != EMPTY_ENTRY && entry.depth >= depthLeft) {
+			++tt_cut_count;
+			//found in transposition table
+			entry.usefulEntry = true; //mark this as useful
+			if(entry.entryType == exact) { //exact match
+				return entry.score;
+			} else if(entry.entryType == lowerBound) {
+				alpha = std::max(alpha, entry.score);
+			} else if(entry.entryType == upperBound) {
+				beta = std::min(beta, entry.score);
+			}
+			if(alpha >= beta) return entry.score;
+		}
+
+		//create pseudo legal moves for this board and side
+		std::vector<move> moves;
 		move_generator generator(board, gameInfo);
 		generator.generatePseudoLegalMoves(side, moves);
-		auto legalCheck = [&](const move& m) { return !(isLegalMove(m, board, gameInfo)); };
-		moves.remove_if(legalCheck); //filter out illegal moves
+		//this lambda is used to see which moves are legal
+		legality_checked legalityChecks[moves.size()];
+		//auto legalCheck = [&](const move& m) { return !(isLegalMove(m, board, gameInfo)); };
 
+		bool legalMovesExist = false; //stores if any legal move was found
+		for(unsigned int i = 0; i<moves.size(); ++i) { //start checking moves for legality, but only until one legal is found
+			if(isLegalMove(moves[i], board, gameInfo)) {
+				legalityChecks[i].checked = true; //store that this move was already checked
+				legalityChecks[i].legal = true;
+				legalMovesExist = true;
+				break; //dont check anymore moves
+			} else {
+				legalityChecks[i].checked = true; //store that this move was already checked
+				legalityChecks[i].legal = false;
+			}
+		}
 		if(depthLeft == 0) { //we are at maximum search depth, evaluate
-			special_board sb = isSpecialBoard(side, board, gameInfo, moves, depth - depthLeft); //detect mates and drawn games
+			special_board sb = isSpecialBoard(side, board, legalMovesExist, depth - depthLeft); //detect mates and drawn games
 			if(sb.special) {
 				return sb.evaluation; //return special evaluation
 			} else {
 				return evaluateBoard(side, board, gameInfo); //evaulate non special board
 			}
 		}
-
 		int bestEvaluation = WORST_VALUE;
-
-		for(const move& move: moves) { //iterate legal moves
-			int capturedPiece = board.makeMove(move, side);
-			game_information infoAfterMove = gameInfo; //create a game info object
-			updateGameInformation(board, move, infoAfterMove); //update new info object with move
-			int evaluation = -alphaBetaNegamax(-beta, -alpha, depthLeft - 1, infoAfterMove); //move down in the tree
-			board.unmakeMove(move, side, capturedPiece); //unmake the move before moving on
-			if(evaluation > bestEvaluation) {
-				bestEvaluation = evaluation;
-			}
-			if(bestEvaluation > alpha) {
-				alpha = bestEvaluation;
-			}
-			if(bestEvaluation >= beta) {
-				break;
+		for(unsigned int i = 0; i<moves.size(); ++i) { //iterate moves, some was already checked for legality!
+			move& move = moves[i];
+			bool isLegal = legalityChecks[i].checked ? legalityChecks[i].legal : isLegalMove(move, board, gameInfo);
+			if(isLegal) { //only evaluate this moves if it ends up being legal
+				int capturedPiece = board.makeMove(move, side);
+				game_information infoAfterMove = gameInfo; //create a game info object
+				updateGameInformation(board, move, infoAfterMove); //update new info object with move
+				int evaluation = -alphaBetaNegamax(-beta, -alpha, depthLeft - 1, infoAfterMove); //move down in the tree
+				board.unmakeMove(move, side, capturedPiece); //unmake the move before moving on
+				if(evaluation > bestEvaluation) {
+					bestEvaluation = evaluation;
+				}
+				if(bestEvaluation > alpha) {
+					alpha = bestEvaluation;
+				}
+				if(bestEvaluation >= beta) {
+					break;
+				}
 			}
 		}
+		//store move in the transposition table
+		unsigned short entryType;
+		if(bestEvaluation <= alphaOriginal) {
+			entryType = upperBound;
+		} else if(bestEvaluation >= beta) {
+			entryType = lowerBound;
+		} else {
+			entryType = exact;
+		}
+		transposition_entry newEntry(entryType, depth, bestEvaluation, false);
+		ttable->put(zobristKey, newEntry);
 		return alpha;
 	}
 
 	move engine::makeMove(const game& gameController) {
-		const std::list<move>& gameMoves = gameController.getMoves();
+		const std::vector<move>& gameMoves = gameController.getMoves();
 		if(gameMoves.size() > 0) {
 			move enemyMove = gameMoves.back(); //update our board with enemy move
 			board.makeMove(enemyMove, 1-side);

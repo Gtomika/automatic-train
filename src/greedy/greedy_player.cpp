@@ -12,37 +12,37 @@
 
 namespace tchess
 {
-	std::list<move> createEnemyMoves(unsigned int enemySide, const chessboard& board, const game_information& info) {
-		std::list<move> enemyMoves;
+	std::vector<move> createEnemyMoves(unsigned int enemySide, const chessboard& board, const game_information& info) {
+		std::vector<move> enemyMoves;
 		move_generator generator(board, info);
 		generator.generatePseudoLegalMoves(enemySide, enemyMoves);
 		return enemyMoves;
 	}
 
 	move greedy_player::makeMove(const game& gameController) {
-		const std::list<move>& gameMoves = gameController.getMoves();
+		const std::vector<move>& gameMoves = gameController.getMoves();
 		if(gameMoves.size() > 0) {
 			move enemyMove = gameMoves.back(); //update our board with enemy move
 			board.makeMove(enemyMove, 1-side);
 			updateGameInformation(board, enemyMove, info); //update game information
 		}
-		std::list<move> moves;
+		std::vector<move> moves;
 		move_generator generator(board, info);
 		generator.generatePseudoLegalMoves(side, moves); //generate all pseudo legal moves
 		auto legalCheck = [&](const move& m) { return !(isLegalMove(m, board, info)); }; //used later
-		moves.remove_if(legalCheck); //filter out illegal moves
+		auto legalEnd = std::remove_if(moves.begin(), moves.end(), legalCheck);
 
 		move bestMove; //stores current best move
 		int bestEvaluation = INT32_MIN;
 		//iterate all legal moves to greedily find best move
-		for(auto it = moves.begin(); it != moves.end(); ++it) {
+		for(auto it = moves.begin(); it != legalEnd; ++it) {
 			int capturedPiece = board.makeMove(*it, side);
 			game_information infoAfterMove = info; //copy game info to not modify the original
 			updateGameInformation(board, *it, infoAfterMove);
 			//the move is legal, and it is made on the board, now evaluate
-			std::list<move> enemyMoves = createEnemyMoves(1-side, board, infoAfterMove);
-			enemyMoves.remove_if(legalCheck); //filter out illegal moves
-			special_board sb = isSpecialBoard(1-side, board, infoAfterMove, enemyMoves, 1);
+			std::vector<move> enemyMoves = createEnemyMoves(1-side, board, infoAfterMove);
+			bool legalEnemyMoves = std::none_of(enemyMoves.begin(), enemyMoves.end(), legalCheck);
+			special_board sb = isSpecialBoard(1-side, board, legalEnemyMoves, 1);
 			int evaluation = 0;
 			if(sb.special) { //no need for static evaluation
 				 evaluation = sb.evaluation;

@@ -42,10 +42,10 @@ namespace tchess
 
 	/*
 	 * Checks if the position is special in a way that it does not need to be evaluated. For example
-	 * mates and insufficient material. Enemy moves passed in must be legal!
+	 * mates and insufficient material. Legal moves parameter is true when there are still legal moves
+	 * in this position.
 	 */
-	special_board isSpecialBoard(unsigned int enemySide, const chessboard& board,
-			const game_information& info, std::list<move>& enemyMoves, int depth);
+	special_board isSpecialBoard(unsigned int enemySide, const chessboard& board, bool legalMoves, int depth);
 
 	/*
 	 * Returns true if the board is in the endgame.

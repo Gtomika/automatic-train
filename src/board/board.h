@@ -24,7 +24,7 @@
 #define SRC_BOARD_BOARD_H_
 
 #include <string>
-#include <list>
+#include <vector>
 #include <utility>
 
 #include "move.h"
@@ -314,7 +314,7 @@ namespace tchess
 		 *
 		 * Pseudo legal moves are where it isn't checked if they leave their king in check.
 		 */
-		void generatePseudoLegalMoves(unsigned int side, std::list<move>&) const;
+		void generatePseudoLegalMoves(unsigned int side, std::vector<move>&) const;
 
 	private:
 
@@ -322,24 +322,24 @@ namespace tchess
 		 * This method will generate all pseudo legal moves for 1 pawn, on the given square.
 		 * It is checked by the called of this method that there is a pawn on this square.
 		 */
-		void generatePseudoLegalPawnMoves(unsigned int side, unsigned int square, std::list<move>&) const;
+		void generatePseudoLegalPawnMoves(unsigned int side, unsigned int square, std::vector<move>&) const;
 
 		/**
 		 * Generates all pseudo legal moves for a non pawn piece. IT is checked by the called of
 		 * this method that there is a non pawn piece on this square
 		 */
-		void generatePseudoLegalNonPawnMoves(unsigned int side, unsigned int square, std::list<move>&) const;
+		void generatePseudoLegalNonPawnMoves(unsigned int side, unsigned int square, std::vector<move>&) const;
 
 		/**
 		 * Generates all pawn moves, including en passant captures and promotions.
 		 */
-		void generatePseudoLegalNormalMoves(unsigned int side, std::list<move>&) const;
+		void generatePseudoLegalNormalMoves(unsigned int side, std::vector<move>&) const;
 
 		/**
 		 * Generates kingside and queenside castling moves. Pseudo legal means here that it it
 		 * not checked whether the king is in check when castling or if it passes through attacked fields.
 		 */
-		void generatePseudoLegalCastleMoves(unsigned int side, std::list<move>&) const;
+		void generatePseudoLegalCastleMoves(unsigned int side, std::vector<move>&) const;
 	};
 
 	/*

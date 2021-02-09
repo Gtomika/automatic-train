@@ -12,6 +12,7 @@
 
 #include "game/player.h"
 #include "polyglot.h"
+#include "transposition_table.h"
 
 namespace tchess
 {
@@ -43,11 +44,22 @@ namespace tchess
 		//Polyglot opening book.
 		opening_book openingBook;
 
+		/*
+		 * The transposition table used by the engine.
+		 */
+		transposition_table* ttable;
+
 	public:
 		engine() = delete;
 
 		engine(unsigned int side, unsigned int depth = default_depth)
-			: side(side), depth(depth), opening(true) {}
+			: side(side), depth(depth), opening(false) {
+			ttable = new transposition_table(def_transposition_table_size);
+		}
+
+		~engine() {
+			delete ttable;
+		}
 
 		/*
 		 * Will submit the best move it can find after evaluating the
@@ -66,8 +78,11 @@ namespace tchess
 
 		/*
 		 * Negamax tree searching method with alpha-beta cutoff.
+		 * - depth left: Current search depth. If this is 0, then we dont go deeper and evaluate.
+		 * - game info: the non-reversible elements of the board. These are copy made and passed in.
+		 * - zobrist: the zobrist key for the board. This is incrementally updated and passed in.
 		 */
-		int alphaBetaNegamax(int alpha, int beta, int depthLeft, game_information& gameInfo);
+		int alphaBetaNegamax(int alpha, int beta, unsigned int depthLeft, game_information& gameInfo);
 	};
 
 }

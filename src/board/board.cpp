@@ -346,7 +346,7 @@ namespace tchess
 
 	//move generation implementation
 
-	void move_generator::generatePseudoLegalPawnMoves(unsigned int side, unsigned int square, std::list<move>& moves) const {
+	void move_generator::generatePseudoLegalPawnMoves(unsigned int side, unsigned int square, std::vector<move>& moves) const {
 		int inFront, captureLeft, captureRight;
 		bool hasCaptureLeftSquare = false, hasCaptureRightSquare = false;
 		if(side == white) { //pawn moves for white
@@ -477,7 +477,7 @@ namespace tchess
 	}
 
 	//Credits to chessprogramming.org for this useful code
-	void move_generator::generatePseudoLegalNonPawnMoves(unsigned int side, unsigned int square, std::list<move>& moves) const {
+	void move_generator::generatePseudoLegalNonPawnMoves(unsigned int side, unsigned int square, std::vector<move>& moves) const {
 		/*
 		 * Depending on the side, this may be negative, but now we wonly care about
 		 * the type of the piece.
@@ -500,7 +500,7 @@ namespace tchess
 		}
 	}
 
-	void move_generator::generatePseudoLegalNormalMoves(unsigned int side, std::list<move>& moves) const {
+	void move_generator::generatePseudoLegalNormalMoves(unsigned int side, std::vector<move>& moves) const {
 		int kingCount = 0;
 		if(side == white) { //generate moves for white
 			for(unsigned int square = 0; square < 64; ++square) { //check all squares
@@ -532,7 +532,7 @@ namespace tchess
 		}
 	}
 
-	void move_generator::generatePseudoLegalCastleMoves(unsigned int side, std::list<move>& moves) const {
+	void move_generator::generatePseudoLegalCastleMoves(unsigned int side, std::vector<move>& moves) const {
 		if(side == white) { //make castling moves for white
 			if(gameInfo.getKingsideCastleRights(white)) { //look for kingside castle, if white still has the right
 				if(board[60] == 5 && board[61] == empty && board[62] == empty && board[63] == 4) {
@@ -560,7 +560,7 @@ namespace tchess
 		}
 	}
 
-	void move_generator::generatePseudoLegalMoves(unsigned int side, std::list<move>& moves) const {
+	void move_generator::generatePseudoLegalMoves(unsigned int side, std::vector<move>& moves) const {
 		moves.clear(); //empty list
 		generatePseudoLegalNormalMoves(side, moves); //add normal moves
 		generatePseudoLegalCastleMoves(side, moves); //add castling moves

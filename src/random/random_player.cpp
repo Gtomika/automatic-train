@@ -28,18 +28,18 @@ namespace tchess
 	}
 
 	move random_player::makeMove(const game& gameController) {
-		const std::list<move>& gameMoves = gameController.getMoves();
+		const std::vector<move>& gameMoves = gameController.getMoves();
 		if(gameMoves.size() > 0) {
 			move enemyMove = gameMoves.back(); //update our board with enemy move
 			board.makeMove(enemyMove, 1-side);
 			updateGameInformation(board, enemyMove, info); //update game information
 		}
-		std::list<move> moves;
+		std::vector<move> moves;
 		move_generator generator(board, info);
 		generator.generatePseudoLegalMoves(side, moves); //generate all pseudo legal moves
 		//filter out illegal moves
-		auto legalEnd = std::remove_if(moves.begin(), moves.end(),
-				[&](const move& m) { return !(isLegalMove(m, board, info)); });
+		auto legalCheck = [&](const move& m) { return !(isLegalMove(m, board, info)); };
+		auto legalEnd = std::remove_if(moves.begin(), moves.end(), legalCheck);
 
 		move randomMove = *select_randomly(moves.begin(), legalEnd); //select legal move randomly
 		board.makeMove(randomMove, side); //make own move on own board
