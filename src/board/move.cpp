@@ -61,6 +61,27 @@ namespace tchess
 	//Move code for a pawn push that captures and results in a queen promotion.
 	extern const unsigned int queenPromotionCap = 15;
 
+	/*
+	 * Meaning of a row: capturing piece.
+	 * Meaining of a column: captured piece.
+	 * So for example 1,6 means pawn capturing queen which gets the highest score.
+	 * King "capture" is also in but it is unused.
+	 */
+	const unsigned int mvvLvaArray[7][7] = {
+			{0,      0,       0,       0,        0,        0,         0}, // <- unused, no piece at 0
+			{0,     105,     205,     305,      405,       0,        505}, // <- pawn captures
+			{0,     104,     204,     304,      404,       0,        504}, // <- knight captures
+			{0,     103,     203,     303,      403,       0,        503}, // <- bishop captures
+			{0,     102,     202,     302,      402,       0,        502}, // <- rook captures
+			{0,     100,     200,     300,      400,       0,        500}, // <- king captures
+			{0,     101,     201,     301,      401,       0,        501} // <- queen captures
+		/*unused    pawn   knight    bishop    rook      king       queen */
+	};
+
+	const unsigned int promotionScoreArray[16] = {
+			0, 0, 0, 0, 0, 0, 0, 0, 320, 330, 400, 900, 320, 330, 400, 900
+	};
+
 	unsigned int move::promotedTo() const {
 		//assumes this a promotion, so only checking special bits
 		int s1 = flags[2], s2 = flags[3];
@@ -84,9 +105,14 @@ namespace tchess
 		}
 	}
 
+	 bool move::operator>(const move& m) const {
+		 return score > m.score;
+	 }
+
 	move& move::operator=(const move& other) {
 		fromSquare = other.fromSquare;
 		toSquare = other.toSquare;
+		score = other.score;
 		for(int i=0; i<4; ++i) {
 			flags[i] = other.flags[i];
 		}
@@ -141,7 +167,7 @@ namespace tchess
 			moveString += pieceNameFromCode(prom);
 		}
 		if(isEnPassant()) { //indicate en passant
-			moveString += " (en passant)";
+			moveString += " (e. p.)";
 		}
 		return moveString;
 	}
@@ -161,18 +187,20 @@ namespace tchess
 		}
 	}
 
+	const move NULLMOVE = move(0, 0, quietMove, 0);
+
 	move parse_move(const std::string& moveString, unsigned int side) {
 		int fromSquare, toSquare;
 		if(moveString == "o-o") {
 			//get kingside castle squares for KING, depending on side
 			fromSquare = side == white ? 60 : 4 ;
 			toSquare = side == white ? 62 : 6 ;
-			return move(fromSquare, toSquare, kingsideCastle);
+			return move(fromSquare, toSquare, kingsideCastle, 0);
 		} else if(moveString == "o-o-o") {
 			//get queenside castle squares for KING, depending on side
 			fromSquare = side == white ? 60 : 4 ;
 			toSquare = side == white ? 58 : 2 ;
-			return move(fromSquare, toSquare, queensideCastle);
+			return move(fromSquare, toSquare, queensideCastle, 0);
 		}
 		//move is not castle, so there must be piece code, departure and destination squares specified
 		std::vector<std::string> splitMove;
@@ -213,7 +241,7 @@ namespace tchess
 					throw move_parse_exception("Unrecognized promotion piece code!");
 				}
 				//move is a promotion, with a valid promotion piece code
-				return move(fromSquare, toSquare, promMoveType);
+				return move(fromSquare, toSquare, promMoveType, 0);
 			} else { //this move does not appear to be a promotion
 				unsigned int moveType = quietMove;
 				if(splitMove[0]=="P" && (toSquare-fromSquare==16 || toSquare-fromSquare==-16)) {
@@ -226,7 +254,7 @@ namespace tchess
 				 * This move may be a capture
 				 * but we have no way of knowing that here, so just using quiet move type.
 				 */
-				return move(fromSquare, toSquare, moveType);
+				return move(fromSquare, toSquare, moveType, 0);
 			}
 		} catch (std::runtime_error& e) { //failed to parse square names
 			throw move_parse_exception("Unrecognized square name/names!");

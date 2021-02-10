@@ -8,13 +8,14 @@
 #include <vector>
 #include <limits>
 #include <algorithm>
+#include <cstring>
 
 #include "engine.h"
 #include "board/evaluation.h"
 
 namespace tchess
 {
-	const unsigned int default_depth = 5;
+	const unsigned int default_depth = 6;
 
 	static unsigned int tt_cut_count = 0;
 
@@ -26,10 +27,11 @@ namespace tchess
 		generator.generatePseudoLegalMoves(side, moves);
 		auto legalCheck = [&](const move& m) { return !(isLegalMove(m, board, info)); };
 		auto legalEnd = std::remove_if(moves.begin(), moves.end(), legalCheck);
+		//order moves
+		std::sort(moves.begin(), moves.end(), std::greater<move>());
 		//we cant be at maximum depth, since this is the root call
 		move bestMove;
 		int bestEvaluation = WORST_VALUE;
-
 		int count = 0;
 		for(auto it = moves.begin(); it != legalEnd; it++) { //iterate legal moves
 			move& _move = *it;
@@ -51,6 +53,7 @@ namespace tchess
 		std::cout << std::endl;
 		ttable->invalidateEntries();
 		//ttable->printDebug();
+		printPrincipalVariation(board, info, depth);
 		return bestMove;
 	}
 
@@ -64,7 +67,7 @@ namespace tchess
 	int engine::alphaBetaNegamax(int alpha, int beta, unsigned int depthLeft, game_information& gameInfo) {
 		unsigned int side = gameInfo.getSideToMove();
 		int alphaOriginal = alpha;
-
+		/*
 		//look up position in transposition table
 		uint64 zobristKey = createZobrishHash(board, gameInfo);
 		transposition_entry& entry = ttable->find(zobristKey);
@@ -81,11 +84,13 @@ namespace tchess
 			}
 			if(alpha >= beta) return entry.score;
 		}
-
+		*/
 		//create pseudo legal moves for this board and side
 		std::vector<move> moves;
 		move_generator generator(board, gameInfo);
 		generator.generatePseudoLegalMoves(side, moves);
+		//SORT moves indo descending order based on their move scores (move ordering)
+		std::sort(moves.begin(), moves.end(), std::greater<move>());
 		//this lambda is used to see which moves are legal
 		legality_checked legalityChecks[moves.size()];
 		//auto legalCheck = [&](const move& m) { return !(isLegalMove(m, board, gameInfo)); };
@@ -102,6 +107,7 @@ namespace tchess
 				legalityChecks[i].legal = false;
 			}
 		}
+
 		if(depthLeft == 0) { //we are at maximum search depth, evaluate
 			special_board sb = isSpecialBoard(side, board, legalMovesExist, depth - depthLeft); //detect mates and drawn games
 			if(sb.special) {
@@ -111,6 +117,7 @@ namespace tchess
 			}
 		}
 		int bestEvaluation = WORST_VALUE;
+		move bestMove;
 		for(unsigned int i = 0; i<moves.size(); ++i) { //iterate moves, some was already checked for legality!
 			move& move = moves[i];
 			bool isLegal = legalityChecks[i].checked ? legalityChecks[i].legal : isLegalMove(move, board, gameInfo);
@@ -122,6 +129,7 @@ namespace tchess
 				board.unmakeMove(move, side, capturedPiece); //unmake the move before moving on
 				if(evaluation > bestEvaluation) {
 					bestEvaluation = evaluation;
+					bestMove = move;
 				}
 				if(bestEvaluation > alpha) {
 					alpha = bestEvaluation;
@@ -131,6 +139,7 @@ namespace tchess
 				}
 			}
 		}
+		/*
 		//store move in the transposition table
 		unsigned short entryType;
 		if(bestEvaluation <= alphaOriginal) {
@@ -140,8 +149,9 @@ namespace tchess
 		} else {
 			entryType = exact;
 		}
-		transposition_entry newEntry(entryType, depth, bestEvaluation, false);
+		transposition_entry newEntry(entryType, depth, bestEvaluation, false, bestMove);
 		ttable->put(zobristKey, newEntry);
+		*/
 		return alpha;
 	}
 
@@ -153,9 +163,9 @@ namespace tchess
 			updateGameInformation(board, enemyMove, info); //update game information
 		}
 		move bestMove;
-		move bookMove(0,0,quietMove);
+		move bookMove = NULLMOVE;
 		if(opening) bookMove = openingBook.getBookMove(board, info);
-		if(!(bookMove == move(0,0,quietMove))) { //found a book opening
+		if(!(bookMove == NULLMOVE)) { //found a book opening
 			std::cout << "I am playing from my opening book!" << std::endl;
 			bestMove = bookMove;
 		} else {
@@ -167,7 +177,6 @@ namespace tchess
 		//update out board with the selected move
 		board.makeMove(bestMove, side); //keep board updated
 		updateGameInformation(board, bestMove, info);
-		//std::cout << "My board after my move:\n" << board.to_string();
 		return bestMove;
 	}
 

@@ -400,11 +400,11 @@ namespace tchess
 		if(fromSquare==defaultKingSquares[side] && toSquare==polyKingsideCastleDest[side] && board[fromSquare] == kingOfSide) {
 			//this move is a kingside castle, but the destination square is NOT the same for internal move representation!!
 			unsigned int internalToSquare = fromSquare + 2;
-			return move(fromSquare, internalToSquare, kingsideCastle);
+			return move(fromSquare, internalToSquare, kingsideCastle, 0);
 		}
 		if(fromSquare==defaultKingSquares[side] && toSquare==polyQueensideCastleDest[side] && board[fromSquare] == kingOfSide) {
 			unsigned int internalToSquare = fromSquare - 2;
-			return move(fromSquare, internalToSquare, queensideCastle);
+			return move(fromSquare, internalToSquare, queensideCastle, 0);
 		}
 		//check if this move is a promotion, although unlikely in an opening
 		unsigned int promotionRank = side == white ? 1 : 6;
@@ -418,22 +418,22 @@ namespace tchess
 				capture = true;
 			}
 			unsigned int promType = polyPromotedPiece(promotionPiece, capture);
-			return move(fromSquare, toSquare, promType);
+			return move(fromSquare, toSquare, promType, 0);
 		}
 		//check if move is en passant
 		if(board[fromSquare]==pawnOfSide && fromFile!=toFile && board[toSquare]==0) {
-			return move(fromSquare, toSquare, enPassantCapture);
+			return move(fromSquare, toSquare, enPassantCapture, 0);
 		}
 		//check if this move is a double pawn push
 		if(board[fromSquare]==pawnOfSide && (toSquare-fromSquare==16 || fromSquare-toSquare==16)) {
-			return move(fromSquare, toSquare, doublePawnPush);
+			return move(fromSquare, toSquare, doublePawnPush, 0);
 		}
 		//not a special move
 		bool isCapture = false;
 		if((side==white && board[toSquare]<0) || (side==black && board[toSquare]>0)) {
 			isCapture = true;
 		}
-		return move(fromSquare, toSquare, isCapture ? capture : quietMove);
+		return move(fromSquare, toSquare, isCapture ? capture : quietMove, 0);
 	}
 
 	move opening_book::getBookMove(const chessboard& board, const game_information& info) {
@@ -458,7 +458,7 @@ namespace tchess
 			 unsigned int selectedIndex = distribution(generator);
 			 return bookMoves[selectedIndex];
 		} else { //no book move found
-			return move(0,0,quietMove);
+			return NULLMOVE;
 		}
 	}
 }

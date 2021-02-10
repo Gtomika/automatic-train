@@ -44,7 +44,7 @@ namespace tchess
 				std::cout << helpMessage;
 			} else if(input == "resign") {
 				moveParsed = true;
-				return move(0, 0, resignMove);
+				return move(0, 0, resignMove, 0);
 			} else { //try to parse a proper move
 				try {
 					move m = parse_move(input, side);

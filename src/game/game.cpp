@@ -85,7 +85,24 @@ namespace tchess
 		int atDest = board[m.getToSquare()];
 		if((side==white && atDest < 0) || (side==black && atDest > 0)) {
 			//appears to be capture
-			m = move(m.getFromSquare(), m.getToSquare(), capture);
+			if(!m.isPromotion()) {
+				m = move(m.getFromSquare(), m.getToSquare(), capture, 0);
+			} else {
+				//replace promotion with promotion capture
+				unsigned int promTo = m.promotedTo();
+				unsigned int promCapTo;
+				if(promTo == queen) {
+					promCapTo = queenPromotionCap;
+				} else if(promTo == rook) {
+					promCapTo = rookPromotionCap;
+				} else if(promTo == bishop) {
+					promCapTo = bishopPromotionCap;
+				} else {
+					promCapTo = knightPromotionCap;
+				}
+				m = move(m.getFromSquare(), m.getToSquare(), promCapTo, 0);
+			}
+
 		}
 	}
 

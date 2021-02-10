@@ -203,6 +203,9 @@ namespace tchess
 		 */
 		bool queensideCastleRight[2];
 
+		//Stores if the sides have castled.
+		bool hasCastled[2];
+
 		/**
 		 * Stores if the players can perform en passant captures in the next move, and at which squares.
 		 * If no such capture is possible, then the value is the 'noEnPassant' constant.
@@ -259,6 +262,14 @@ namespace tchess
 		 */
 		inline bool getQueensideCastleRights(unsigned int side) const {
 			return queensideCastleRight[side];
+		}
+
+		inline void setHasCastled(unsigned int side) {
+			hasCastled[side] = true;
+		}
+
+		inline bool getHasCastled(unsigned int side) const {
+			return hasCastled[side];
 		}
 
 		/**

@@ -1,6 +1,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <iostream>
+#include <cstdlib>
 
 #include "board.h"
 
@@ -309,6 +310,9 @@ namespace tchess
 		} else if(onKRookSquare != 4 && onKRookSquare != -4) {  //if the kingside rook is not at it's place, then disable kingside castle right
 			info.disableKingsideCastleRight(sideThatMoved);
 		}
+		if(m.isKingsideCastle() || m.isQueensideCastle()) {
+			info.setHasCastled(sideThatMoved);
+		}
 		//remove previous en passant squares, since they 'expire after 1 move'
 		info.setEnPassantSquare(sideThatMoved, noEnPassant);
 		info.setEnPassantSquare(enemySide, noEnPassant);
@@ -363,52 +367,58 @@ namespace tchess
 				int inFrontFar = board[square-16]; //this square is in front of the square in front of the white pawn
 				//double pawn push is only possible of 2 squares in front of the pawn are empty
 				if(inFront == empty && inFrontFar == empty) {
-					moves.push_back(move(square, square-16, doublePawnPush)); //register possible double pawn push
+					moves.push_back(move(square, square-16, doublePawnPush, 0)); //register possible double pawn push
 					//adding the en passant capture square is not done here
 				}
 				if(inFront == empty) { //the pawn can still choose to only move one square
-					moves.push_back(move(square, square-8, quietMove));
+					moves.push_back(move(square, square-8, quietMove, 0));
 				}
 				//despite the double push, the pawn can still choose to capture
 				if(hasCaptureLeftSquare && captureLeft < 0) { //enemy piece on the left capture square
-					moves.push_back(move(square, square-9, capture));
+					int captured = std::abs(captureLeft);
+					moves.push_back(move(square, square-9, capture, mvvLvaArray[pawn][captured]));
 				}
 				if(hasCaptureRightSquare && captureRight < 0) { //enemy piece on the right capture square
-					moves.push_back(move(square, square-7, capture));
+					int captured = std::abs(captureRight);
+					moves.push_back(move(square, square-7, capture, mvvLvaArray[pawn][captured]));
 				}
 			} else if(square / 8 == 1) { //the pawn is ready to promote if it can move/capture forward
 				if(inFront == empty) { //the pawn can quietly move into the promotion rank if there is nothing in front
-					moves.push_back(move(square, square-8, knightPromotion));
-					moves.push_back(move(square, square-8, bishopPromotion));
-					moves.push_back(move(square, square-8, rookPromotion));
-					moves.push_back(move(square, square-8, queenPromotion));
+					moves.push_back(move(square, square-8, knightPromotion, promotionScoreArray[knightPromotion]));
+					moves.push_back(move(square, square-8, bishopPromotion, promotionScoreArray[bishopPromotion]));
+					moves.push_back(move(square, square-8, rookPromotion, promotionScoreArray[rookPromotion]));
+					moves.push_back(move(square, square-8, queenPromotion, promotionScoreArray[queenPromotion]));
 				}
 				if(hasCaptureLeftSquare && captureLeft < 0) { //enemy piece on the left (promotion) capture square
-					moves.push_back(move(square, square-9, knightPromotionCap));
-					moves.push_back(move(square, square-9, bishopPromotionCap));
-					moves.push_back(move(square, square-9, rookPromotionCap));
-					moves.push_back(move(square, square-9, queenPromotionCap));
+					int captured = std::abs(captureLeft);
+					moves.push_back(move(square, square-9, knightPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[knightPromotion]));
+					moves.push_back(move(square, square-9, bishopPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[bishopPromotion]));
+					moves.push_back(move(square, square-9, rookPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[rookPromotion]));
+					moves.push_back(move(square, square-9, queenPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[queenPromotion]));
 				}
 				if(hasCaptureRightSquare && captureRight < 0) { //enemy piece on the right (promotion) capture square
-					moves.push_back(move(square, square-7, knightPromotionCap));
-					moves.push_back(move(square, square-7, bishopPromotionCap));
-					moves.push_back(move(square, square-7, rookPromotionCap));
-					moves.push_back(move(square, square-7, queenPromotionCap));
+					int captured = std::abs(captureRight);
+					moves.push_back(move(square, square-7, knightPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[knightPromotion]));
+					moves.push_back(move(square, square-7, bishopPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[bishopPromotion]));
+					moves.push_back(move(square, square-7, rookPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[rookPromotion]));
+					moves.push_back(move(square, square-7, queenPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[queenPromotion]));
 				}
 			} else { //the pawn can neither double push nor promote
 				if(inFront == empty) { //the pawn can advance if the way is empty
-					moves.push_back(move(square, square-8, quietMove));
+					moves.push_back(move(square, square-8, quietMove, 0));
 				}
 				//the pawn can also capture
 				if(hasCaptureLeftSquare && captureLeft < 0) { //enemy piece on the left capture square
-					moves.push_back(move(square, square-9, capture));
+					int captured = std::abs(captureLeft);
+					moves.push_back(move(square, square-9, capture, mvvLvaArray[pawn][captured]));
 				} else if(hasCaptureLeftSquare && (square-9) == gameInfo.getEnPassantSquare(white)) { //en passant capture possible to the left
-					moves.push_back(move(square, square-9, enPassantCapture));
+					moves.push_back(move(square, square-9, enPassantCapture, mvvLvaArray[pawn][pawn]));
 				}
 				if(hasCaptureRightSquare && captureRight < 0) { //enemy piece on the right capture square
-					moves.push_back(move(square, square-7, capture));
+					int captured = std::abs(captureRight);
+					moves.push_back(move(square, square-7, capture, mvvLvaArray[pawn][captured]));
 				} else if(hasCaptureRightSquare && (square-7) == gameInfo.getEnPassantSquare(white)) { //en passant capture possible to the right
-					moves.push_back(move(square, square-7, enPassantCapture));
+					moves.push_back(move(square, square-7, enPassantCapture, mvvLvaArray[pawn][pawn]));
 				}
 			}
 		} else { //pawn moves for black
@@ -425,52 +435,58 @@ namespace tchess
 				int inFrontFar = board[square+16]; //this square is in front of the square in front of the black pawn
 				//double pawn push is only possible of 2 squares in front of the pawn are empty
 				if(inFront == empty && inFrontFar == empty) {
-					moves.push_back(move(square, square+16, doublePawnPush)); //register possible double pawn push
+					moves.push_back(move(square, square+16, doublePawnPush, 0)); //register possible double pawn push
 					//adding the en passant capture square is not done here
 				}
 				if(inFront == empty) { //the pawn can still choose to only move one square
-					moves.push_back(move(square, square+8, quietMove));
+					moves.push_back(move(square, square+8, quietMove, 0));
 				}
 				//despite the double push, the pawn can still choose to capture
 				if(hasCaptureLeftSquare && captureLeft > 0) { //enemy piece on the left capture square
-					moves.push_back(move(square, square+7, capture));
+					int captured = std::abs(captureLeft);
+					moves.push_back(move(square, square+7, capture, mvvLvaArray[pawn][captured]));
 				}
 				if(hasCaptureRightSquare && captureRight > 0) { //enemy piece on the right capture square
-					moves.push_back(move(square, square+9, capture));
+					int captured = std::abs(captureRight);
+					moves.push_back(move(square, square+9, capture, mvvLvaArray[pawn][captured]));
 				}
 			} else if(square / 8 == 6) { //the pawn is ready to promote if it can move/capture forward
 				if(inFront == empty) { //the pawn can quietly move into the promotion rank if there is nothing in front
-					moves.push_back(move(square, square+8, knightPromotion));
-					moves.push_back(move(square, square+8, bishopPromotion));
-					moves.push_back(move(square, square+8, rookPromotion));
-					moves.push_back(move(square, square+8, queenPromotion));
+					moves.push_back(move(square, square+8, knightPromotion, promotionScoreArray[knightPromotion]));
+					moves.push_back(move(square, square+8, bishopPromotion, promotionScoreArray[bishopPromotion]));
+					moves.push_back(move(square, square+8, rookPromotion, promotionScoreArray[rookPromotion]));
+					moves.push_back(move(square, square+8, queenPromotion, promotionScoreArray[queenPromotion]));
 				}
 				if(hasCaptureLeftSquare && captureLeft > 0) { //enemy piece on the left (promotion) capture square
-					moves.push_back(move(square, square+7, knightPromotionCap));
-					moves.push_back(move(square, square+7, bishopPromotionCap));
-					moves.push_back(move(square, square+7, rookPromotionCap));
-					moves.push_back(move(square, square+7, queenPromotionCap));
+					int captured = std::abs(captureLeft);
+					moves.push_back(move(square, square+7, knightPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[knightPromotion]));
+					moves.push_back(move(square, square+7, bishopPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[bishopPromotion]));
+					moves.push_back(move(square, square+7, rookPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[rookPromotion]));
+					moves.push_back(move(square, square+7, queenPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[queenPromotion]));
 				}
 				if(hasCaptureRightSquare && captureRight > 0) { //enemy piece on the right (promotion) capture square
-					moves.push_back(move(square, square+9, knightPromotionCap));
-					moves.push_back(move(square, square+9, bishopPromotionCap));
-					moves.push_back(move(square, square+9, rookPromotionCap));
-					moves.push_back(move(square, square+9, queenPromotionCap));
+					int captured = std::abs(captureRight);
+					moves.push_back(move(square, square+9, knightPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[knightPromotion]));
+					moves.push_back(move(square, square+9, bishopPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[bishopPromotion]));
+					moves.push_back(move(square, square+9, rookPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[rookPromotion]));
+					moves.push_back(move(square, square+9, queenPromotionCap, mvvLvaArray[pawn][captured]+promotionScoreArray[queenPromotion]));
 				}
 			} else { //the pawn can neither double push nor promote
 				if(inFront == empty) { //the pawn can advance if the way is empty
-					moves.push_back(move(square, square+8, quietMove));
+					moves.push_back(move(square, square+8, quietMove, 0));
 				}
 				//the pawn can also capture
 				if(hasCaptureLeftSquare && captureLeft > 0) { //enemy piece on the left capture square
-					moves.push_back(move(square, square+7, capture));
+					int captured = std::abs(captureLeft);
+					moves.push_back(move(square, square+7, capture, mvvLvaArray[pawn][captured]));
 				}  else if(hasCaptureLeftSquare && (square+7) == gameInfo.getEnPassantSquare(black)) { //en passant capture possible to the left
-					moves.push_back(move(square, square+7, enPassantCapture));
+					moves.push_back(move(square, square+7, enPassantCapture, mvvLvaArray[pawn][pawn]));
 				}
 				if(hasCaptureRightSquare && captureRight > 0) { //enemy piece on the right capture square
-					moves.push_back(move(square, square+9, capture));
+					int captured = std::abs(captureRight);
+					moves.push_back(move(square, square+9, capture, mvvLvaArray[pawn][captured]));
 				} else if(hasCaptureRightSquare && (square+9) == gameInfo.getEnPassantSquare(black)) { //en passant capture possible to the right
-					moves.push_back(move(square, square+9, enPassantCapture));
+					moves.push_back(move(square, square+9, enPassantCapture, mvvLvaArray[pawn][pawn]));
 				}
 			}
 		}
@@ -482,19 +498,20 @@ namespace tchess
 		 * Depending on the side, this may be negative, but now we wonly care about
 		 * the type of the piece.
 		 */
-		const int piece = board[square] < 0 ? -1*board[square] : board[square];
+		const int piece = std::abs(board[square]);
 		for(unsigned int i=0; i<offsetAmount[piece]; ++i) { //check all the directions (offsets) this piece can move to
 			for (int n = square;;) {
 				n = mailbox[mailbox64[n] + offsets[piece][i]]; //number of the next square in this direction
 			    if (n == -1) break; //square is off the board
 			    if (board[n] != empty) { //there is a piece on this square
 			    	if ( (side==white && board[n] < 0) || (side == black && board[n] > 0) ) { //this piece is an enemy piece
-			    		moves.push_back(move(square, n, capture));
+			    		int captured = std::abs(board[n]);
+			    		moves.push_back(move(square, n, capture, mvvLvaArray[piece][captured]));
 			        }
 			        break; //after capture, or if it was a friendly piece we can not move any more in this direction
 			    }
 			    //there was no piece here, can make a quiet move in this direction
-			    moves.push_back(move(square, n, quietMove));
+			    moves.push_back(move(square, n, quietMove, 0));
 			    if (!canSlide[piece]) break; //for non-sliding pieces, we must stop after 1 move in a direction
 			}
 		}
@@ -536,25 +553,25 @@ namespace tchess
 		if(side == white) { //make castling moves for white
 			if(gameInfo.getKingsideCastleRights(white)) { //look for kingside castle, if white still has the right
 				if(board[60] == 5 && board[61] == empty && board[62] == empty && board[63] == 4) {
-					moves.push_back(move(60,62,kingsideCastle));
+					moves.push_back(move(60,62,kingsideCastle, 0));
 				}
 			}
 			if(gameInfo.getQueensideCastleRights(white)) { //look for kingside castle, if white still has the right
 				if(board[56] == 4 && board[57] == empty &&
 						board[58] == empty && board[59] == empty && board[60] == 5) {
-					moves.push_back(move(60,58,queensideCastle));
+					moves.push_back(move(60,58,queensideCastle, 0));
 				}
 			}
 		} else { //make castling moves for black
 			if(gameInfo.getKingsideCastleRights(black)) { //look for kingside castle, if black still has the right
 				if(board[4] == -5 && board[5] == empty && board[6] == empty && board[7] == -4) {
-					moves.push_back(move(4,6,kingsideCastle));
+					moves.push_back(move(4,6,kingsideCastle, 0));
 				}
 			}
 			if(gameInfo.getQueensideCastleRights(black)) { //look for kingside castle, if black still has the right
 				if(board[0] == -4 && board[1] == empty &&
 						board[2] == empty && board[3] == empty && board[4] == -5) {
-					moves.push_back(move(4,2,queensideCastle));
+					moves.push_back(move(4,2,queensideCastle, 0));
 				}
 			}
 		}

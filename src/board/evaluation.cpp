@@ -491,9 +491,18 @@ namespace tchess
 		}
 		if(pieceCounts[side][bishop] >= 2) { //reward for bishop pair
 			evaluation += 15;
-		} else if(pieceCounts[enemySide][bishop] >= 2) { //penalty for enemy bishop pair
+		}
+		if(pieceCounts[enemySide][bishop] >= 2) { //penalty for enemy bishop pair
 			evaluation -= 15;
 		}
+		//penalize side that has no caastled in the early game
+		if(!endgame && !info.getHasCastled(side)) {
+			evaluation -= (info.getKingsideCastleRights(side)||info.getQueensideCastleRights(side)) ? 15 : 25;
+		}
+		if(!endgame && !info.getHasCastled(enemySide)) {
+			evaluation += (info.getKingsideCastleRights(enemySide)||info.getQueensideCastleRights(enemySide)) ? 15 : 25;
+		}
+
 		return evaluation;
 	}
 }

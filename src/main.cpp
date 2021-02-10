@@ -35,12 +35,6 @@ namespace tchess {
 	 * Can test all kind of functions here.
 	 */
 	void test() {
-		chessboard board(test_squares);
-		game_information info;
-		move opening(createSquareNumber("e2"), createSquareNumber("e4"), doublePawnPush);
-		board.makeMove(opening, white);
-		updateGameInformation(board, opening, info);
-		std::cout << std::hex << polyKeyFromBoard(board, info) << std::dec << std::endl;
 	}
 }
 

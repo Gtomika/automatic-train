@@ -13,6 +13,7 @@
 #include "game/player.h"
 #include "polyglot.h"
 #include "transposition_table.h"
+#include "move_ordering.h"
 
 namespace tchess
 {
@@ -80,7 +81,7 @@ namespace tchess
 		 * Negamax tree searching method with alpha-beta cutoff.
 		 * - depth left: Current search depth. If this is 0, then we dont go deeper and evaluate.
 		 * - game info: the non-reversible elements of the board. These are copy made and passed in.
-		 * - zobrist: the zobrist key for the board. This is incrementally updated and passed in.
+		 * - pvLine: collected principal variation of the parent node.
 		 */
 		int alphaBetaNegamax(int alpha, int beta, unsigned int depthLeft, game_information& gameInfo);
 	};

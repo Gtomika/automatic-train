@@ -108,6 +108,17 @@ namespace tchess
 		}
 	};
 
+	/*
+	 * This array stores what score a move will get depending on what piece captures
+	 * what.
+	 */
+	extern const unsigned int mvvLvaArray[7][7];
+
+	/*
+	 * Contains move scores for promotion types.
+	 */
+	extern const unsigned int promotionScoreArray[16];
+
 	/**
 	 * Represents a chess move, using the departure square (from) and the destination
 	 * square (to).
@@ -135,15 +146,23 @@ namespace tchess
 		//The 4 bit wide bitfield containing the flags.
 		std::bitset<4> flags;
 
+		/*
+		 * The score of the move determines how high it will go in the move ordering. Player
+		 * agents that do not care about move ordering can set this to 0.
+		 * During move generation each generated move will get a score depending on the MvvLva scheme
+		 * (most valuable victim, least valuable attacker).
+		 */
+		unsigned int score;
+
 	public:
-		move() : fromSquare(0), toSquare(0){}
+		move() : fromSquare(0), toSquare(0), score(0) {} //<- basically NULLMOVE
 
 		//Create a move object
-		move(unsigned int fromSquare, unsigned int toSquare, unsigned int flags) :
-			fromSquare(fromSquare), toSquare(toSquare), flags(flags) {}
+		move(unsigned int fromSquare, unsigned int toSquare, unsigned int flags, unsigned int score) :
+			fromSquare(fromSquare), toSquare(toSquare), flags(flags), score(score) {}
 
 		move(const move& other) : fromSquare(other.fromSquare), toSquare(other.toSquare),
-				flags(0) {
+				flags(0), score(other.score) {
 			for(int i=0; i<4; ++i) {
 				flags[i] = other.flags[i];
 			}
@@ -208,6 +227,8 @@ namespace tchess
 
 		inline unsigned int getToSquare() const { return toSquare; }
 
+		inline unsigned int getScore() const { return score; }
+
 		/*
 		 * Equality check between 2 moves. They are equal if both the departure
 		 * and the destination squares are equal. In case of promotions, the equality
@@ -216,11 +237,21 @@ namespace tchess
 		bool operator==(const move& other) const;
 
 		/*
+		 * Used to sort move vectors into descending order.
+		 */
+		 bool operator>(const move& m) const;
+
+		/*
 		 * Creates a string format of the move. Since the move
 		 * object does not store what piece moved that must be passed in
 		 */
 		std::string to_string(int pieceThatMoved) const;
 	};
+
+	/*
+	 * Move from square 0 to 0, can be used to indicate that no move was found/no move exists.
+	 */
+	extern const move NULLMOVE;
 
 	//Helper method to convert piece codes into letters
 	char pieceNameFromCode(int pieceCode);

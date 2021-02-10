@@ -50,17 +50,22 @@ namespace tchess
 		bool usefulEntry;
 
 		/*
+		 * The best move at this position.
+		 */
+		move bestMove;
+
+		/*
 		 * Creates an uninitialized entry.
 		 */
-		transposition_entry() : entryType(uninitialized), depth(0), score(0), usefulEntry(false) {}
+		transposition_entry() : entryType(uninitialized), depth(0), score(0), usefulEntry(false), bestMove(NULLMOVE) {}
 
 		//constructor from values
-		transposition_entry(unsigned short entryType, unsigned int depth, int score, bool useful)
-			: entryType(entryType), depth(depth), score(score), usefulEntry(useful) {}
+		transposition_entry(unsigned short entryType, unsigned int depth, int score, bool useful, const move& m)
+			: entryType(entryType), depth(depth), score(score), usefulEntry(useful), bestMove(m) {}
 
 		//Copy constructor.
 		transposition_entry(const transposition_entry& other) : entryType(other.entryType), depth(other.depth),
-				score(other.score), usefulEntry(other.usefulEntry) {}
+				score(other.score), usefulEntry(other.usefulEntry), bestMove(other.bestMove) {}
 
 		//Assignment operator.
 		void operator=(const transposition_entry& other) {
@@ -68,11 +73,12 @@ namespace tchess
 			depth = other.depth;
 			score = other.score;
 			usefulEntry = other.usefulEntry;
+			bestMove = other.bestMove;
 		}
 
 		bool operator==(const transposition_entry& other) {
 			return entryType == other.entryType && depth == other.depth &&
-					score == other.score && usefulEntry == other.usefulEntry;
+					score == other.score && usefulEntry == other.usefulEntry && bestMove == other.bestMove;
 		}
 
 		bool operator!=(const transposition_entry& other) {
@@ -163,6 +169,8 @@ namespace tchess
 		 * This function determines the replacement strategy of the transposition table.
 		 */
 		inline bool replaceOldEntry(transposition_entry oldEntry, transposition_entry newEntry) {
+			if(oldEntry.entryType == exact && newEntry.entryType != exact) return false; //never replace exact with not exact
+			if(oldEntry.entryType != exact && newEntry.entryType == exact) return true; //always replace not exact with exact
 			return !oldEntry.usefulEntry; //if the old entry was used in lookup recently, then dont replace
 		}
 	};
