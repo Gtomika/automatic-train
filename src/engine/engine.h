@@ -54,7 +54,7 @@ namespace tchess
 		engine() = delete;
 
 		engine(unsigned int side, unsigned int depth = default_depth)
-			: side(side), depth(depth), opening(false) {
+			: side(side), depth(depth), opening(true) {
 			ttable = new transposition_table(def_transposition_table_size);
 		}
 

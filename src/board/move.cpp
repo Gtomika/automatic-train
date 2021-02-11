@@ -84,7 +84,7 @@ namespace tchess
 
 	unsigned int move::promotedTo() const {
 		//assumes this a promotion, so only checking special bits
-		int s1 = flags[2], s2 = flags[3];
+		int s1 = flags[1], s2 = flags[0];
 		if(s1==1 && s2==1) return queen;
 		if(s1==1 && s2==0) return rook;
 		if(s1==0 && s2==1) return bishop;
@@ -146,6 +146,9 @@ namespace tchess
 	}
 
 	std::string move::to_string(int pieceThatMoved) const {
+		if(*this == NULLMOVE) {
+			return "Null move";
+		}
 		if(isKingsideCastle()) { //special moves
 			return "o-o";
 		} else if(isQueensideCastle()) {
@@ -180,10 +183,10 @@ namespace tchess
 	bool checkForPromotion(const std::string& fromSquareName, const std::string& toSquareName, unsigned int side) {
 		if(side == white) {
 			//white promoted if the move is from the 7. rank to the 8. rank
-			return fromSquareName[1] == 7 && toSquareName[1] == 8;
+			return fromSquareName[1] == '7' && toSquareName[1] == '8';
 		} else { //black
 			//black promoted if the move is from the 2. rank to the 1. rank
-			return fromSquareName[1] == 2 && toSquareName[1] == 1;
+			return fromSquareName[1] == '2' && toSquareName[1] == '1';
 		}
 	}
 

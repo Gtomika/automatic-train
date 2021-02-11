@@ -17,8 +17,6 @@ namespace tchess
 {
 	const unsigned int default_depth = 6;
 
-	static unsigned int tt_cut_count = 0;
-
 	move engine::alphaBetaNegamaxRoot() {
 		unsigned int side = info.getSideToMove();
 		//create legal moves for this board and side
@@ -35,8 +33,7 @@ namespace tchess
 		int count = 0;
 		for(auto it = moves.begin(); it != legalEnd; it++) { //iterate legal moves
 			move& _move = *it;
-			int p = board[_move.getFromSquare()];
-			p = p > 0 ? p : -p;
+			int p = std::abs(board[_move.getFromSquare()]);
 			//this is not working in eclipse console but does in normal console!
 			std::cout << "\rAnalyzing " << ++count << ". move out of " << moves.size()
 								<< ", move: " << _move.to_string(p) << "           "; //<- to delete whole line
@@ -67,12 +64,10 @@ namespace tchess
 	int engine::alphaBetaNegamax(int alpha, int beta, unsigned int depthLeft, game_information& gameInfo) {
 		unsigned int side = gameInfo.getSideToMove();
 		int alphaOriginal = alpha;
-		/*
 		//look up position in transposition table
 		uint64 zobristKey = createZobrishHash(board, gameInfo);
 		transposition_entry& entry = ttable->find(zobristKey);
-		if(entry != EMPTY_ENTRY && entry.depth >= depthLeft) {
-			++tt_cut_count;
+		if(entry != EMPTY_ENTRY && zobristKey == entry.hashKey && entry.depth >= depthLeft) {
 			//found in transposition table
 			entry.usefulEntry = true; //mark this as useful
 			if(entry.entryType == exact) { //exact match
@@ -84,7 +79,6 @@ namespace tchess
 			}
 			if(alpha >= beta) return entry.score;
 		}
-		*/
 		//create pseudo legal moves for this board and side
 		std::vector<move> moves;
 		move_generator generator(board, gameInfo);
@@ -93,8 +87,6 @@ namespace tchess
 		std::sort(moves.begin(), moves.end(), std::greater<move>());
 		//this lambda is used to see which moves are legal
 		legality_checked legalityChecks[moves.size()];
-		//auto legalCheck = [&](const move& m) { return !(isLegalMove(m, board, gameInfo)); };
-
 		bool legalMovesExist = false; //stores if any legal move was found
 		for(unsigned int i = 0; i<moves.size(); ++i) { //start checking moves for legality, but only until one legal is found
 			if(isLegalMove(moves[i], board, gameInfo)) {
@@ -107,7 +99,6 @@ namespace tchess
 				legalityChecks[i].legal = false;
 			}
 		}
-
 		if(depthLeft == 0) { //we are at maximum search depth, evaluate
 			special_board sb = isSpecialBoard(side, board, legalMovesExist, depth - depthLeft); //detect mates and drawn games
 			if(sb.special) {
@@ -139,7 +130,6 @@ namespace tchess
 				}
 			}
 		}
-		/*
 		//store move in the transposition table
 		unsigned short entryType;
 		if(bestEvaluation <= alphaOriginal) {
@@ -149,9 +139,8 @@ namespace tchess
 		} else {
 			entryType = exact;
 		}
-		transposition_entry newEntry(entryType, depth, bestEvaluation, false, bestMove);
+		transposition_entry newEntry(zobristKey, entryType, depth, bestEvaluation, false, bestMove);
 		ttable->put(zobristKey, newEntry);
-		*/
 		return alpha;
 	}
 

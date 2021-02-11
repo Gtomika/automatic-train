@@ -75,14 +75,20 @@ namespace tchess
 		 */
 		std::vector<move> moves;
 
+		/*
+		 * Stores how many illegal moves can be submitted by the players before they
+		 * automatically lose the match. By default this is 5.
+		 */
+		unsigned int illegalMoveCounter[2];
+
 	public:
 		game() = delete;
 
 		/**
 		 * Create the game, from references to both sides.
 		 */
-		game(player* wp, player* bp)
-			: gameEnded(false), startNewGame(false), whitePlayer(wp), blackPlayer(bp) {}
+		game(player* wp, player* bp) : gameEnded(false), startNewGame(false),
+				whitePlayer(wp), blackPlayer(bp), illegalMoveCounter{5,5} {}
 
 		/**
 		 * This method starts the game by requesting the first move from the white player.

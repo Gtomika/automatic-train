@@ -14,26 +14,32 @@
 namespace tchess
 {
 	char selectPlayerForSide(const std::string& sideName) {
-		std::cout << "---------------------------" << std::endl
-				  << "Select who will play " << sideName << ":" << std::endl
-				  << " - Type p for player!" << std::endl
-				  << " - Type e for engine!" << std::endl
-				  << " - Type r for the random move maker!" << std::endl
-				  << " - Type g for the greedy move maker!" << std::endl;
+		bool selected = false;
 		std::string selection;
-		std::getline(std::cin, selection);
-		if(selection == "p") {
-			std::cout << sideName << " will be controlled by a player." << std::endl;
-		} else if(selection == "e") {
-			std::cout << sideName << " will be controlled by the TChess engine." << std::endl;
-		} else if(selection == "r") {
-			std::cout << sideName << " will be controlled by the Random move maker." << std::endl;
-		} else if(selection == "g") {
-			std::cout << sideName << " will be controlled by the Greedy move maker." << std::endl;
-		}
-		else {
-			std::cout << "Invalid selection, please try again!" << std::endl;
-			selectPlayerForSide(sideName);
+		while(!selected) {
+			std::cout << "---------------------------" << std::endl
+					  << "Select who will play " << sideName << ":" << std::endl
+					  << " - Type p for player!" << std::endl
+					  << " - Type e for engine!" << std::endl
+					  << " - Type r for the random move maker!" << std::endl
+					  << " - Type g for the greedy move maker!" << std::endl;
+
+			std::getline(std::cin, selection);
+			if(selection == "p") {
+				std::cout << sideName << " will be controlled by a player." << std::endl;
+				selected = true;
+			} else if(selection == "e") {
+				std::cout << sideName << " will be controlled by the TChess engine." << std::endl;
+				selected = true;
+			} else if(selection == "r") {
+				std::cout << sideName << " will be controlled by the Random move maker." << std::endl;
+				selected = true;
+			} else if(selection == "g") {
+				std::cout << sideName << " will be controlled by the Greedy move maker." << std::endl;
+				selected = true;
+			} else {
+				std::cout << "Invalid selection, please try again!" << std::endl;
+			}
 		}
 		return selection[0];
 	}
@@ -41,8 +47,8 @@ namespace tchess
 	bool selectPlayersAndStart() {
 		char whiteSelect = selectPlayerForSide("White");
 		char blackSelect = selectPlayerForSide("Black");
-		player* whitePlayer;
-		player* blackPlayer;
+		player* whitePlayer = nullptr;
+		player* blackPlayer = nullptr;
 		if(whiteSelect == 'p') {
 			whitePlayer = new human_player_console(white);
 		} else if(whiteSelect == 'e') {
@@ -63,8 +69,8 @@ namespace tchess
 		}
 		game gameController(whitePlayer, blackPlayer);
 		bool startNewGame = gameController.playGame();
-		delete whitePlayer;
-		delete blackPlayer;
+		if(whitePlayer != nullptr) delete whitePlayer;
+		if(blackPlayer != nullptr) delete blackPlayer;
 		return startNewGame;
 	}
 
@@ -177,10 +183,18 @@ namespace tchess
 			}
 			std::cout << std::endl;
 			std::cout << board.to_string();
-		} else { //move is invalid
-			std::cout << playerWhoMoves << " has made an illegal move: " << m.to_string(pieceThatMoved) << ", " << result.getInformation() << std::endl;
+		} else { //move is illegal
 			if(result.isPseudoLegal()) {  //unmake the illegal move on the board
 				board.unmakeMove(m, side, result.getCapturedPiece());
+			}
+			--illegalMoveCounter[side];
+			std::cout << playerWhoMoves << " has made an illegal move: " << m.to_string(pieceThatMoved) << ", " <<
+					result.getInformation() << std::endl;
+			if(illegalMoveCounter[side] > 0) {
+				std::cout << playerWhoMoves << " can only make " << illegalMoveCounter[side] << " more illegal moves before losing!" << std::endl;
+			} else { //this player made too many illegal moves and loses
+				std::string enemyName = side == white ? blackPlayer->description() : whitePlayer->description();
+				endGame(false, enemyName, "Too many illegal moves!");
 			}
 		}
 	}

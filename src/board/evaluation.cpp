@@ -181,15 +181,15 @@ namespace tchess
 
 	/*
 	 * Checks if the position is special in a way that it does not need to be evaluated. For example
-	 * mates and insufficient material. Enemy moves must be legal.
+	 * mates and insufficient material.
 	 */
-	special_board isSpecialBoard(unsigned int enemySide, const chessboard& board, bool legalMoves, int depth) {
+	special_board isSpecialBoard(unsigned int side, const chessboard& board, bool legalMoves, int depth) {
 		if(board.isInsufficientMaterial()) { //draw without evaluation
 			return {true, 0};
 		}
 		if(!legalMoves) {
-			bool enemyInCheck = isAttacked(board, 1-enemySide, board.getKingSquare(enemySide));
-			if(enemyInCheck) {
+			bool inCheck = isAttacked(board, 1-side, board.getKingSquare(side));
+			if(inCheck) {
 				return {true, WORST_VALUE + depth };
 			} else {
 				return {true, 0};

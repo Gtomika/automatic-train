@@ -31,6 +31,9 @@ namespace tchess
 	 */
 	struct transposition_entry {
 
+		//Hash of this entry.
+		uint64 hashKey;
+
 		//One of the exact, upperBound, lowerBound constants (or the uninitialized).
 		unsigned short entryType;
 
@@ -57,18 +60,19 @@ namespace tchess
 		/*
 		 * Creates an uninitialized entry.
 		 */
-		transposition_entry() : entryType(uninitialized), depth(0), score(0), usefulEntry(false), bestMove(NULLMOVE) {}
+		transposition_entry() : hashKey(0), entryType(uninitialized), depth(0), score(0), usefulEntry(false), bestMove(NULLMOVE) {}
 
 		//constructor from values
-		transposition_entry(unsigned short entryType, unsigned int depth, int score, bool useful, const move& m)
-			: entryType(entryType), depth(depth), score(score), usefulEntry(useful), bestMove(m) {}
+		transposition_entry(uint64 hashKey, unsigned short entryType, unsigned int depth, int score, bool useful, const move& m)
+			: hashKey(hashKey), entryType(entryType), depth(depth), score(score), usefulEntry(useful), bestMove(m) {}
 
 		//Copy constructor.
-		transposition_entry(const transposition_entry& other) : entryType(other.entryType), depth(other.depth),
+		transposition_entry(const transposition_entry& other) : hashKey(other.hashKey), entryType(other.entryType), depth(other.depth),
 				score(other.score), usefulEntry(other.usefulEntry), bestMove(other.bestMove) {}
 
 		//Assignment operator.
 		void operator=(const transposition_entry& other) {
+			hashKey = other.hashKey;
 			entryType = other.entryType;
 			depth = other.depth;
 			score = other.score;
@@ -77,7 +81,7 @@ namespace tchess
 		}
 
 		bool operator==(const transposition_entry& other) {
-			return entryType == other.entryType && depth == other.depth &&
+			return hashKey == other.hashKey && entryType == other.entryType && depth == other.depth &&
 					score == other.score && usefulEntry == other.usefulEntry && bestMove == other.bestMove;
 		}
 
