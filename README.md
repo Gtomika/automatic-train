@@ -6,7 +6,7 @@ following players are included:
 - User controlled player.
 - Random move maker: only plays random legal moves.
 - Greedy move maker: only cares about the result of the next move.
-- Tchess engine: Actual chess engine, still being optimized.
+- Tchess engine: Actual chess engine, still being optimized and bugfixed.
 
 # How to build
 
