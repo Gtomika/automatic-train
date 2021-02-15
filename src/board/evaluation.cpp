@@ -177,7 +177,8 @@ namespace tchess
 	   }
 	};
 
-	const int WORST_VALUE = INT32_MIN + 1;
+	const int WORST_VALUE = INT32_MIN + 100;
+	const int BEST_VALUE = INT32_MAX - 100;
 
 	/*
 	 * Checks if the position is special in a way that it does not need to be evaluated. For example
@@ -190,7 +191,7 @@ namespace tchess
 		if(!legalMoves) {
 			bool inCheck = isAttacked(board, 1-side, board.getKingSquare(side));
 			if(inCheck) {
-				return {true, WORST_VALUE + depth };
+				return {true, WORST_VALUE - depth };
 			} else {
 				return {true, 0};
 			}

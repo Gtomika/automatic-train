@@ -40,7 +40,7 @@ namespace tchess
 			int capturedPiece = board.makeMove(_move, side);
 			game_information infoAfterMove = info; //create a game info object
 			updateGameInformation(board, _move, infoAfterMove); //update new info object with move
-			int evaluation = -alphaBetaNegamax(WORST_VALUE, INT32_MAX, depth-1, infoAfterMove); //move down in the tree
+			int evaluation = -alphaBetaNegamax(WORST_VALUE, BEST_VALUE, depth-1, infoAfterMove); //move down in the tree
 			board.unmakeMove(_move, side, capturedPiece); //unmake the move before moving on
 			if(evaluation >= bestEvaluation) {
 				bestEvaluation = evaluation;

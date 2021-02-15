@@ -41,6 +41,11 @@ namespace tchess
 	extern const int WORST_VALUE;
 
 	/*
+	 * Best possible value that can happen during evaluation.
+	 */
+	extern const int BEST_VALUE;
+
+	/*
 	 * Checks if the position is special in a way that it does not need to be evaluated. For example
 	 * mates and insufficient material. Legal moves parameter is true when there are still legal moves
 	 * in this position.
