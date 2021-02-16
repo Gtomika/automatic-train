@@ -38,7 +38,6 @@ namespace tchess
 		//iterate all legal moves to greedily find best move
 		for(auto it = moves.begin(); it != legalEnd; ++it) {
 			move _move = *it;
-			int evBef = evaluateBoard(side, board, info);
 			int capturedPiece = board.makeMove(_move, side);
 			game_information infoAfterMove = info; //copy game info to not modify the original
 			updateGameInformation(board, _move, infoAfterMove);
@@ -56,13 +55,11 @@ namespace tchess
 			if(sb.special) { //no need for static evaluation
 				 evaluation = sb.evaluation;
 			} else { //static evaluation
-				evaluation = evaluateBoard(side, board, infoAfterMove);
+				evaluation = evaluateBoard(side, board, infoAfterMove, moves.size());
 			}
 			board.unmakeMove(_move, side, capturedPiece); //unmake move after evaluation
-			int evAft = evaluateBoard(side, board, info);
-			std::string moveString = _move.to_string(std::abs(board[_move.getFromSquare()]));
-			std::cout << "Evaluation " << evaluation << " for move " << moveString << std::endl;
-			if(evBef != evAft) std::cout << "Board corrupted during this move!" << std::endl;
+			//std::string moveString = _move.to_string(std::abs(board[_move.getFromSquare()]));
+			//std::cout << "Evaluation " << evaluation << " for move " << moveString << std::endl;
 			//The eval function will return higher score for better positions.
 			if(evaluation >= bestEvaluation) { //new best move
 				bestEvaluation = evaluation;

@@ -191,7 +191,7 @@ namespace tchess
 		if(!legalMoves) {
 			bool inCheck = isAttacked(board, 1-side, board.getKingSquare(side));
 			if(inCheck) {
-				return {true, WORST_VALUE - depth };
+				return {true, WORST_VALUE - depth};
 			} else {
 				return {true, 0};
 			}
@@ -397,7 +397,7 @@ namespace tchess
 		return 5 * (friendlyPieces - enemyPieces);
 	}
 
-	int evaluateBoard(unsigned int side, const chessboard& board, const game_information& info) {
+	int evaluateBoard(unsigned int side, const chessboard& board, const game_information& info, unsigned int movesAmount) {
 		//int sideMultiplier = side == white ? 1 : -1;
 		unsigned int enemySide = 1-side;
 
@@ -414,6 +414,11 @@ namespace tchess
 		 * The higher the score, the better this position is for the side to move.
 		 */
 		bool endgame = isEndgame(board);
+		//detect if we are in check
+		bool inCheck = isAttacked(board, enemySide, board.getKingSquare(side));
+		//detect if enemy is inCheck
+		bool enemyInCheck = isAttacked(board, side, board.getKingSquare(enemySide));
+		//begin evaluation with material and positional evaluation
 		int evaluation = 0;
 		for(unsigned int square = 0; square < 64; ++square) {
 			int piece = board[square];
@@ -480,14 +485,13 @@ namespace tchess
 					}
 					int kingSafety = kingSafetyEvaluation(sideOfPiece, square, board);
 					if(sideOfPiece == side) { //our king
-						 evaluation += kingSafety;
+						 evaluation += inCheck ? kingSafety - 20 : kingSafety;
 					} else { //enemy king
-						evaluation -= kingSafety;
+						evaluation -= enemyInCheck ? kingSafety + 20 : kingSafety;
 					}
 				} else { //must be queen
 					evaluation += queenTable[sideOfPiece][square];
 				}
-				//piece defense and attack evaluation
 			}
 		}
 		if(pieceCounts[side][bishop] >= 2) { //reward for bishop pair
@@ -496,14 +500,17 @@ namespace tchess
 		if(pieceCounts[enemySide][bishop] >= 2) { //penalty for enemy bishop pair
 			evaluation -= 15;
 		}
-		//penalize side that has no caastled in the early game
+		//penalize side that has no castled in the early game
 		if(!endgame && !info.getHasCastled(side)) {
 			evaluation -= (info.getKingsideCastleRights(side)||info.getQueensideCastleRights(side)) ? 15 : 25;
 		}
 		if(!endgame && !info.getHasCastled(enemySide)) {
 			evaluation += (info.getKingsideCastleRights(enemySide)||info.getQueensideCastleRights(enemySide)) ? 15 : 25;
 		}
-
+		//Mobility: warning: one sided
+		if(!inCheck) { //if we are not in check then almost all pseudo legal moves will be legal
+			evaluation += 2 * movesAmount;
+		}
 		return evaluation;
 	}
 }

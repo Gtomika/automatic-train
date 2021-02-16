@@ -104,7 +104,7 @@ namespace tchess
 			if(sb.special) {
 				return sb.evaluation; //return special evaluation
 			} else {
-				return evaluateBoard(side, board, gameInfo); //evaulate non special board
+				return evaluateBoard(side, board, gameInfo, moves.size()); //evaulate non special board
 			}
 		}
 		int bestEvaluation = WORST_VALUE;

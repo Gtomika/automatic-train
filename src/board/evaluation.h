@@ -104,8 +104,10 @@ namespace tchess
 	 *  - side: the side who made the last move on the board and for whom the evaluation is happening.
 	 *  - board: the board object
 	 *  - info: game info object needed to generate the enemy moves (to check for mates)
+	 *  - The amount of PSEUDO LEGAL moves this side has.
 	 */
-	int evaluateBoard(unsigned int side, const chessboard& board, const game_information& info);
+	int evaluateBoard(unsigned int side, const chessboard& board,
+			const game_information& info, unsigned int moveAmount);
 }
 
 #endif /* SRC_BOARD_EVALUATION_H_ */
